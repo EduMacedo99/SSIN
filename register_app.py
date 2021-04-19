@@ -53,7 +53,7 @@ if __name__ == "__main__":
     
     print("Your id is:", one_time_id)
     
-    password = getpass.getpass()
+    password = getpass.getpass(prompt="Please enter your password\n", stream="*")
     
     new_user(username, password, security_level, one_time_id, conn)
     conn.commit()
