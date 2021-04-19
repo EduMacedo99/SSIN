@@ -56,6 +56,5 @@ if __name__ == "__main__":
     password = getpass.getpass()
     
     new_user(username, password, security_level, one_time_id, conn)
-    display_table()
     conn.commit()
     conn.close()
