@@ -1,15 +1,10 @@
 const express = require("express");
-
+const auth = require('./routes/auth')
 const app = express();
 const port = 3000;
 
-app.get("/", (req, res) => {
-  res.send("Hello World, from express");
-});
 
-app.get("/auth", (req, res) => {
-  res.send("reg function");
-});
+app.use('/auth', auth)
 
 app.listen(port, () =>
   console.log(`Hello world app listening on port ${port}!`)
