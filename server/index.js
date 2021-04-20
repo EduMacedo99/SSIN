@@ -1,9 +1,14 @@
 const express = require("express");
+
 const app = express();
 const port = 3000;
 
 app.get("/", (req, res) => {
   res.send("Hello World, from express");
+});
+
+app.get("/auth", (req, res) => {
+  res.send("reg function");
 });
 
 app.listen(port, () =>
