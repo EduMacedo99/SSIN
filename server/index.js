@@ -1,8 +1,8 @@
-import express from "express";
-import auth from './routes/auth';
-import service from './routes/service';
-import register from './routes/register.js';
-import coms from './routes/coms';
+const express = require("express");
+const auth = require('./routes/auth')
+const service = require('./routes/service');
+const register = require('./routes/register.js');
+const coms = require('./routes/coms');
 
 const app = express();
 const port = 3000;
