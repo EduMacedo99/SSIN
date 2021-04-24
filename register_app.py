@@ -27,7 +27,7 @@ def new_user(username,password, security_level, one_time_id, connection=sqlite3.
                  + sha256(bytes(password, "ascii")).hexdigest() + '", "' 
                  + security_level + '", "' 
                  + sha256(bytes(one_time_id, "ascii")).hexdigest() +
-                 '", null);')
+                 '", null, null);')
 
 def display_table(connection=sqlite3.connect('database/Database.db')):
     cursor = connection.execute('''SELECT * FROM users;''')
@@ -38,23 +38,27 @@ def display_table(connection=sqlite3.connect('database/Database.db')):
        print("Security level = ", row[2])
        print("ID_hash = ", row[3])
        print("IP = ", row[4])
+       print("Public Key = ", row[5])
 
 
 if __name__ == "__main__":
     conn = sqlite3.connect('database/Database.db')
     print("Opened database successfully")
-    create_table(conn)
     
-    username = input("Please enter your username:\n")
+    username = input("Please enter collaborator username: \n")
     
-    security_level = input("What is the security clearance level for this client?\n")
+    security_level = input("What is the security clearance level for this client? \n")
     
     one_time_id = generate_id()
     
-    print("Your id is:", one_time_id)
+    print("Important! Take note of your ID: ", one_time_id, "\n")
     
-    password = getpass.getpass(prompt="Please enter your password\n", stream="*")
+    password = getpass.getpass(prompt="Please enter your password\n")
     
     new_user(username, password, security_level, one_time_id, conn)
     conn.commit()
     conn.close()
+
+    print("Register completed \n")
+
+    display_table()
