@@ -1,14 +1,18 @@
 #!python3
 
 import os
-from dotenv import load_dotenv, find_dotenv, dotenv_values
+from dotenv import load_dotenv, dotenv_values
+import dotenv
 
-
+dotenv_file = dotenv.find_dotenv()
 config = dotenv_values(".env")
+
+empty = False
 
 try: registered = config['REGISTERED']
 except KeyError:
     registered = '0'
+    empty = True
 
 print(registered)
 
@@ -23,7 +27,9 @@ def registration():
     success = 1
 
     if success == 1:
-        print()
+        dotenv.set_key(dotenv_file, "REGISTERED", '1')
+        dotenv.set_key(dotenv_file, "USERNAME", username)
+        dotenv.set_key(dotenv_file, "ID", ID)
 
 
 
