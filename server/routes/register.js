@@ -12,7 +12,6 @@ app.post('/get_token', function (req, res) {
     console.log(req.body.token);
     const pem = fs.readFileSync('../server/private.pem', 'utf8');
     const privateKey = forge.pki.decryptRsaPrivateKey(pem, '2210');
-    privateKey = forge.pki.privateKeyFromPem(privateKey);
     
     const token = privateKey.decrypt(forge.util.decode64(req.body.token), 'RSA-OAEP', {
         md: forge.md.sha1.create(),
@@ -20,7 +19,7 @@ app.post('/get_token', function (req, res) {
         md: forge.md.sha1.create()
         }
     });
-    console.log(decrypted_token);
+    console.log(token);
     res.json({'ok':'ok'});
 });
 
