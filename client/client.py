@@ -30,12 +30,17 @@ def registration():
         dotenv.set_key(dotenv_file, "REGISTERED", '1')
         dotenv.set_key(dotenv_file, "USERNAME", username)
         dotenv.set_key(dotenv_file, "ID", ID)
+        #polos a escolher uma password
+
+    else:
+        dotenv.set_key(dotenv_file, "REGISTERED", '0')
+        print('Invalid username/ID')
 
 
 
 if registered == '0':
     registration()
 else: 
-    print('already successfully registered\n Initiating authentication')
+    print('Already successfully registered\n Initiating authentication')
 
     
