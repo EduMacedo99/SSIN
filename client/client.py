@@ -4,7 +4,11 @@ import os
 from dotenv import load_dotenv, dotenv_values
 import dotenv
 
-dotenv_file = dotenv.find_dotenv()
+try:
+    dotenv_file = dotenv.find_dotenv(raise_error_if_not_found=True) #argumento file name existe 
+except OSError:
+    print('.env not foud\n Creating a new one...')
+
 config = dotenv_values(".env")
 
 empty = False
@@ -13,8 +17,6 @@ try: registered = config['REGISTERED']
 except KeyError:
     registered = '0'
     empty = True
-
-print(registered)
 
 def registration():
     username = input('Insert the username you chose on the server registration:\n')
