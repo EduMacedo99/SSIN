@@ -1,19 +1,16 @@
 
-import base64
-from cryptography.hazmat.backends.interfaces import RSABackend
 import requests
-from Crypto.Cipher import PKCS1_OAEP
-from Crypto.PublicKey import RSA
+import encrypt
 
-
-ID = str.encode("123456")
+SERVER_KEY_PATH = 'server_public.pem'
+one_time_ID = "123456"
 # First-Registration
+# get server public key
 # response = requests.get("http://127.0.0.1:3000/register")
 # open('server_public.pem', 'wb').write(response.content)
-token = '1234'
 
-key = RSA.importKey(open('server_public.pem').read())
-cipher = PKCS1_OAEP.new(key)
-output = base64.b64encode(cipher.encrypt(token.encode('utf-8')))
+message = encrypt.encrypt(SERVER_KEY_PATH, one_time_ID)
 token = requests.post(
-    "http://127.0.0.1:3000/register/get_token", json={'token': output})
+    "http://127.0.0.1:3000/register/get_token", json={'token': message})
+
+
