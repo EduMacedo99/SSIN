@@ -8,4 +8,4 @@ let db = new sqlite3.Database('../database/Database.db', sqlite3.OPEN_READWRITE,
     else console.log('Connected to database.');
   });
 
-  
+module.exports = db;
