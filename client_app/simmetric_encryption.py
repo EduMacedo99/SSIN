@@ -1,24 +1,28 @@
-import base64
 from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
 from Crypto import Random
+from base64 import b64decode
+from base64 import b64encode
+import binascii
+import json
+import random
 
-BS = 16
-pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
-unpad = lambda s: s[: -ord(s[len(s) - 1 :])]
+# iv= get_random_bytes(16)
+
+# Encryption
+def encrypt(data, iv, key):
+    data = str.encode(data)
+    pad = data + b"\0" * (AES.block_size - len(data) % AES.block_size)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    ciphertext = cipher.encrypt(pad)
+    cypher_hex = b64encode(ciphertext).decode("utf-8")
+    return cypher_hex
 
 
-class AESCipher:
-    def __init__(self, key):
-        self.key = key
-
-    def encrypt(self, raw):
-        raw = pad(raw)
-        iv = Random.new().read(AES.block_size)
-        cipher = AES.new(self.key, AES.MODE_CBC, iv)
-        return base64.b64encode(iv + cipher.encrypt(raw))
-
-    def decrypt(self, enc):
-        enc = base64.b64decode(enc)
-        iv = enc[:16]
-        cipher = AES.new(self.key, AES.MODE_CBC, iv)
-        return unpad(cipher.decrypt(enc[16:]))
+# Decryption
+def decrypt(ciphertext, iv, key):
+    ciphertext = b64decode(ciphertext)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    data = cipher.decrypt(ciphertext)
+    data = data.decode("utf-8")
+    return str(b64decode(data).decode())
