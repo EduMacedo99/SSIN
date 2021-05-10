@@ -14,9 +14,8 @@ app.get('/', function (req, res) {
 });
 
 app.post('/get_token', function (req, res) {
-    const token = "333333333333iiiiiiiiiiiiiiiiiiiiiii3333333333"
-    const iv = "aaaaaaaaaaaaaaaa"
-    const key = "aaaaaaaaaaaaaaaa"
+    const iv = req.body.iv;
+    const key = req.body.key;
  
     console.log(req.body.token);
     console.log(req.body.encrypt_pass)
@@ -42,16 +41,16 @@ app.post('/get_token', function (req, res) {
     console.log("pass: " + simmetric_key);
     //confirmar na BD que cliente onetimeID é correto
     //criar um token
-    //const token = Crypto.randomBytes(12).toString('base64').slice(0, 12);
-    
+    const token = Crypto.randomBytes(12).toString('base64').slice(0, 12);
+    console.log("token: " + token)
     //**************************************************************************** */
     
     
     const enc_token = simmetric.encrypt(token, iv, key)
-  
-    console.log(token + " *********  " + enc_token)
+
+    console.log("enc_token: " + enc_token)
     
-    res.json({'token': enc_token, 'encrypt_pass':"sds"});
+    res.json({'token': enc_token});
 
 });
 
