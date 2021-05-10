@@ -7,7 +7,6 @@ import binascii
 import json
 import random
 
-# iv= get_random_bytes(16)
 
 # Encryption
 def encrypt(data, iv, key):
