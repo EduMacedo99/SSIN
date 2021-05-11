@@ -6,7 +6,7 @@ let app = express.Router()
 
 const crypto = require('crypto') 
 const buffertrim = require('buffertrim') 
-const simmetric = require('../simmetric_encryption')
+const symmetric = require('../symmetric_encryption')
 
 app.get('/', function (req, res) {
     console.log(req.body);
@@ -20,7 +20,7 @@ app.post('/get_token', function (req, res) {
     console.log(req.body.token);
     console.log(req.body.encrypt_pass)
     console.log(req.body.cenas)
-    const cenas_dec = simmetric.decrypt(req.body.cenas, iv, key)
+    const cenas_dec = symmetric.decrypt(req.body.cenas, iv, key)
     console.log("decript: "+ cenas_dec)
     const pem = fs.readFileSync('../server/private.pem', 'utf8');
     const privateKey = forge.pki.decryptRsaPrivateKey(pem, '2210');
@@ -31,14 +31,14 @@ app.post('/get_token', function (req, res) {
             md: forge.md.sha1.create()
         }
     });
-    const simmetric_key = privateKey.decrypt(forge.util.decode64(req.body.encrypt_pass), 'RSA-OAEP', {
+    const symmetric_key = privateKey.decrypt(forge.util.decode64(req.body.encrypt_pass), 'RSA-OAEP', {
         md: forge.md.sha1.create(),
         mgf1: {
             md: forge.md.sha1.create()
         }
     });
     console.log("ID: " + onetimeID);
-    console.log("pass: " + simmetric_key);
+    console.log("pass: " + symmetric_key);
     //confirmar na BD que cliente onetimeID é correto
     //criar um token
     const token = Crypto.randomBytes(12).toString('base64').slice(0, 12);
@@ -46,7 +46,7 @@ app.post('/get_token', function (req, res) {
     //**************************************************************************** */
     
     
-    const enc_token = simmetric.encrypt(token, iv, key)
+    const enc_token = symmetric.encrypt(token, iv, key)
 
     console.log("enc_token: " + enc_token)
     
