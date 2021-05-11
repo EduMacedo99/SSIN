@@ -30,10 +30,11 @@ one_time_ID_encrypt = base64.b64encode(
 encrypt_key = base64.b64encode(cipher.encrypt(simmetric_key.encode("utf-8")))
 encrypted_iv = base64.b64encode(cipher.encrypt(iv.encode('utf-8')))
 
-# simmetric encryption test
+# #############simmetric encryption test#####################3
 message = "this is testing"
 enc_message = simmetric_encryption.encrypt(
     message, iv.encode(), simmetric_key.encode())
+##############################################################
 
 token_encrypt = requests.post(
     SERVER_URL + "register/get_token",
@@ -45,6 +46,7 @@ token_encrypt = requests.post(
     },
 ).json()
 
+# decrypt token, maybe store it encrypted would be better
 print("encrypted token: " + token_encrypt["token"])
 decrypted_token = simmetric_encryption.decrypt(
     token_encrypt["token"], iv.encode(), simmetric_key.encode())
