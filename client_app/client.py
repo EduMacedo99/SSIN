@@ -29,7 +29,7 @@ cipher = PKCS1_OAEP.new(key)
 one_time_ID_encrypt = base64.b64encode(
     cipher.encrypt(one_time_ID.encode("utf-8")))
 encrypt_key = base64.b64encode(cipher.encrypt(symmetric_key.encode("utf-8")))
-encrypted_iv = base64.b64encode(cipher.encrypt(iv.encode('utf-8')))
+encrypt_iv = base64.b64encode(cipher.encrypt(iv.encode('utf-8')))
 
 # #############symmetric encryption test#####################3
 message = "this is testing"
@@ -41,9 +41,9 @@ print("enc_message: " + enc_message)
 token_encrypt = requests.post(
     SERVER_URL + "register/get_token",
     json={
-        "ID": one_time_ID_encrypt,
+        "ID_encrypt": one_time_ID_encrypt,
         "encrypt_key": encrypt_key,
-        "iv": encrypted_iv,
+        "encrypt_iv": encrypt_iv,
         "message": enc_message,
     },
 ).json()
@@ -54,9 +54,9 @@ decrypted_token = symmetric_encryption.decrypt(
     token_encrypt["token"], iv.encode(), symmetric_key.encode())
 print("decryptedtoken: " + decrypted_token)
 
-print("encrypted message: " + token_encrypt["message"])
+print("encrypted message: " + token_encrypt["final_message"])
 decrypted_token = symmetric_encryption.decrypt(
-    token_encrypt["message"], iv.encode(), symmetric_key.encode())
+    token_encrypt["final_message"], iv.encode(), symmetric_key.encode())
 print("decryptedmessage: " + decrypted_token)
 
 
