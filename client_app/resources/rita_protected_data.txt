@@ -1,1 +1,1 @@
-{"username": "rita", "symmetric_key": "ikkjaozmssnsdrkr", "iv": "vkxwexvjuqcjvnwj", "token": "decrypted_token"}
+{"username": "rita", "symmetric_key": "fetfbouqwcybmjob", "iv": "gexpszqmxyvbvqwx", "token": "this is testing"}

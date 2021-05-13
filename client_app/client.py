@@ -35,6 +35,7 @@ encrypted_iv = base64.b64encode(cipher.encrypt(iv.encode('utf-8')))
 message = "this is testing"
 enc_message = symmetric_encryption.encrypt(
     message, iv.encode(), symmetric_key.encode())
+print("enc_message: " + enc_message)
 ##############################################################
 
 token_encrypt = requests.post(
