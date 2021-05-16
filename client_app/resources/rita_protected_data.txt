@@ -1,1 +1,0 @@
-{"username": "rita", "symmetric_key": "wwiimwiegdgcyvdz", "iv": "hsbkjbsmdpgdwfib", "token": "this is testing"}

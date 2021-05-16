@@ -4,45 +4,78 @@ const express = require("express")
 let app = express.Router()
 const net = require("net")
 const symmetric = require("../symmetric_encryption")
+const db = require("../DBconnect.js")
 
 const CHALLENGE_TIMEOUT = 10
 
 /**
+ * Get client data from the BD with username
+ */
+function getClient(res, username, callback){
+  const sql = `SELECT * FROM users WHERE username = "`+ username +'"'
+  db.get(sql, (err, row) => {
+      if (row == undefined){
+        console.log("User not found: " + username)
+        res.status(500).json({"msg":"username do not exist on the server."})
+      }
+      else callback(row)
+  })
+}
+
+/**
+* Encrypt challenge and save challenge encrypted and their expire timeout on the BD
+*/
+function savaChallenge (username, challenge, timeout, symmetric_key, symmetric_key_iv) {
+  // Encrypt challenge
+  const enc_challenge =symmetric.encrypt(challenge, symmetric_key_iv, symmetric_key)
+  // Update BD
+  const sql = "UPDATE users SET challenge=?, challenge_timeout=? WHERE username=?"
+  db.run(sql, [enc_challenge, timeout, username], (err, row) => {
+      if (err) 
+          return console.error(err.message)
+      if (row) 
+          console.log("Updated BD client: ", row)
+  });
+}
+
+/**
  * A client sends their username+token, and is asking to start a new session
  * If username+token exists, Authenticator Server sends a challenge (different each time)
+ * TODO: put symmetric key + token on the BD in the register phase
  */
 app.get("/", function (req, res) {
-    const { msg, username, token} = req.body
+    const { msg, username, cl_token} = req.body
     console.log("\nStart of authentication ...")
     console.log(" client<  ?  >: " + msg)
 
-    // If username exists on the BD, get symmetric key
-    // TODO: ... 
-    const bd_symmetric_key = "wwiimwiegdgcyvdz"
-    const bd_iv = "hsbkjbsmdpgdwfib"
-    const bd_token = "this is testing"
-    // Decrypt  token
-    const token_decrypted = symmetric.decrypt(token, bd_iv, bd_symmetric_key)
-    // Check if token is the same on the BD
-    if(bd_token != token_decrypted){
-      res.status(500).json({"msg":"username or token doesnt match."})
-      return
-    }
+    // Check if username and token matches BD
+    getClient(res, username, (client) => {
+      const { symmetric_key, symmetric_key_iv, token} = client
 
-    // Generate challenge, a unique random value
-    const N = Crypto.randomBytes(32).toString("hex")
+      const aux_symmetric_key = "wwiimwiegdgcyvdz"
+      const aux_symmetric_key_iv = "hsbkjbsmdpgdwfib"
+      const aux_token = "this is testing"
 
-    // (slides) Protecting against replays needs a nonce or a timestamp
-    // (slides) Timestamps need time synchronization which enlarges the attack surface
-    // The challenge has a challenge timeout that expires
-    const expire_time = Date.now() + CHALLENGE_TIMEOUT
+      // Decrypt  token
+      const token_decrypted = symmetric.decrypt(cl_token, aux_symmetric_key_iv, aux_symmetric_key)
+      if(aux_token != token_decrypted){
+          res.status(500).json({"msg":"token do not macth this username."})
+          return
+      }
 
-    // Encrypt challenge and save it on the BD, and its expire timeout
-    const enc_challenge = symmetric.encrypt(N,  bd_iv, bd_symmetric_key)
-    // TODO: ...
+      // Generate challenge, a unique random value
+      const N = Crypto.randomBytes(32).toString("hex")
 
-    res.status(200).json({"msg": username+ "? Prove it, challenge: " + N, challenge: N, timeout: expire_time})
+      // (slides) Protecting against replays needs a nonce or a timestamp
+      // (slides) Timestamps need time synchronization which enlarges the attack surface
+      // The challenge has a challenge timeout that expires
+      const expire_time = Date.now() + CHALLENGE_TIMEOUT
 
+      // Encrypt challenge and save it on the BD, and its expire timeout
+      savaChallenge(username, N, expire_time, aux_symmetric_key, aux_symmetric_key_iv)
+
+      res.status(200).json({"msg": username+ "? Prove it, challenge: " + N, challenge: N, timeout: expire_time})
+    })
 })
 
 /**
@@ -65,7 +98,7 @@ app.get("/challengeRefreshToken", function (req, res) {
     console.log(Date.now())
     res.status(500).json({"msg":"challenge lifetime expired."})
     if(bd_enc_challenge != "")//enc_challenge){
-      res.status(500).json({"msg":"Answer does not macth."})
+      res.status(500).json({"msg":"Answer do not macth."})
     
     console.log("Authentication failed.")
     return

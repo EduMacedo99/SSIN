@@ -14,7 +14,12 @@ def create_table(connection=sqlite3.connect('database/Database.db')):
                      security_level INT CHECK(3 >= security_level >= 1),
                      one_time_id TEXT,
                      ip_address TEXT,
-                     token TEXT )
+                     token TEXT
+                     symmetric_key TEXT,
+                     symmetric_key_iv TEXT,
+                     challenge TETX,
+                     challenge_timeout DATE
+                 )
                  ''')
 
 
@@ -29,7 +34,7 @@ def new_user(username, password, security_level, one_time_id, connection=sqlite3
                  + sha256(bytes(password, "ascii")).hexdigest() + '", "'
                  + security_level + '", "'
                  + sha256(bytes(one_time_id, "ascii")).hexdigest() +
-                 '", null, null, null);')
+                 '", null, null, null, null, null, null, null);')
 
 
 def display_table(connection=sqlite3.connect('database/Database.db')):
@@ -39,10 +44,15 @@ def display_table(connection=sqlite3.connect('database/Database.db')):
         print("username = ", row[0])
         print("password_hash = ", row[1])
         print("Security level = ", row[2])
-        print("ID_hash = ", row[3])
+        print("One time Id = ", row[3])
         print("IP = ", row[4])
         print("Public Key = ", row[5])
-
+        print("Token = ", row[6])
+        print("Symmetric Key = ", row[7])
+        print("Symmetric Key IV = ", row[8])
+        print("Challenge = ", row[9])
+        print("Challenge Timeout = ", row[10])
+        
 
 if __name__ == "__main__":
     conn = sqlite3.connect('database/Database.db')

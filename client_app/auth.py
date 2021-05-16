@@ -3,7 +3,7 @@ import symmetric_encryption
 import socket
 
 SERVER_IP_URL = "http://127.0.0.1:3000"
-USERNAME = "rita"
+USERNAME = input("username[only works for users in BD]: ")
 
 """
 Perform an automatic authentication of the client with the server for each session
@@ -42,7 +42,7 @@ if is_registered:
             json={
                 "msg":"I'm username " + USERNAME,
                 "username": USERNAME,
-                "token": enc_token,
+                "cl_token": enc_token,
                 } 
         )
         res_content = res.json()
