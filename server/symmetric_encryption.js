@@ -15,7 +15,7 @@ module.exports = {
         return ciphertextB64
     },
     decrypt: function(message,iv, key) {
-        console.log("message: " +message)
+        //console.log("message: " +message)
 
         var decipher = crypto.createDecipheriv('aes-128-cbc', key, iv)
         decipher.setAutoPadding(false)                                                      // Disable PKCS7 (un-) padding
