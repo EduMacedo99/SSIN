@@ -7,6 +7,46 @@ import dotenv
 import pyAesCrypt
 from request_service import request_service
 from getpass import getpass
+import re
+
+def registration():
+    counter_pw = 0
+    username = input('Insert the username you chose on the server registration:\n')
+    ID = input('Insert the unique ID you were given in the server registration:\n')
+    
+    success = serverReg()
+
+    if success:
+        dotenv.set_key(dotenv_file, "USERNAME", username)
+        dotenv.set_key(dotenv_file, "ID", ID)
+        #polos a escolher uma password
+
+        while counter_pw < 3:
+            #Ask for strong password
+            print('Insert your a new password for this device. The password should at least:\n\t- Have 8 characters or more\n\t- Include Uppercase letters\n\t- Include numbers')
+            save_pw = getpass()
+
+            rexes = ('[A-Z]', '[a-z]', '[0-9]')
+
+            if len(password) >= 8 and all(re.search(r, password) for r in rexes):
+                print('Strong password. Trying to register...')
+                break
+            else:
+                print('Password not strong enough... Try again')
+                counter_pw +=1
+                if counter >= 3: 
+                    print("Maximum tries exceeded. Exiting...")
+                    exit()
+    else:
+        #dizer que username/id estão mal e tentar outra vez
+        print('Something went wrong')
+
+def serverReg():
+    print('codigo do raul aqui (?)')
+    return True
+
+
+########################################################### MAIN SCRIPT ###########################################################
 
 
 #pyAesCrypt.encryptFile(".env", ".env.aes", password)
@@ -22,7 +62,6 @@ if path.exists(".env.aes"):
         #ask for password
         username = input('Username: ')
         
-        #TODO: pedir uma pass complicada
         password = getpass()
 
         try:
@@ -49,23 +88,5 @@ if path.exists(".env.aes"):
 else:
     registration()
 
-def registration():
-    username = input('Insert the username you chose on the server registration:\n')
-    ID = input('Insert the unique ID you were given in the server registration:\n')
 
-    #Aqui tentamos fazer registar no server 
-    print('trying to register...')
-
-    #exemplo
-    success = 1
-
-    # if success == 1:
-    #     dotenv.set_key(dotenv_file, "REGISTERED", '1')
-    #     dotenv.set_key(dotenv_file, "USERNAME", username)
-    #     dotenv.set_key(dotenv_file, "ID", ID)
-    #     #polos a escolher uma password
-
-    # else:
-    #     dotenv.set_key(dotenv_file, "REGISTERED", '0')
-    #     print('Invalid username/ID')
 
