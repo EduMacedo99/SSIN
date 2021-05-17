@@ -56,7 +56,7 @@ def registration():
         pyAesCrypt.encryptFile(".env", ".env.aes", username+save_pw)
 
         #APAGA MALUCO
-        time.sleep(2)
+        f.close()
         os.remove(".env")
 
 
