@@ -8,6 +8,7 @@ import pyAesCrypt
 from request_service import request_service
 from getpass import getpass
 import re
+import time
 
 def registration():
     counter_pw = 0
@@ -18,12 +19,6 @@ def registration():
 
     if success:
 
-        #Desencriptar o .aes escrever para lá as variàveis e voltar a encriptá-lo como na autenticação
-
-        #dotenv.set_key(dotenv_file, "USERNAME", username)
-        #dotenv.set_key(dotenv_file, "ID", ID)
-        
-        
         #polos a escolher uma password
         while counter_pw < 3:
             #Ask for strong password
@@ -32,7 +27,7 @@ def registration():
 
             rexes = ('[A-Z]', '[a-z]', '[0-9]')
 
-            if len(password) >= 8 and all(re.search(r, password) for r in rexes):
+            if len(save_pw) >= 8 and all(re.search(r, save_pw) for r in rexes):
                 print('Strong password. Trying to register...')
                 break
             else:
@@ -41,6 +36,30 @@ def registration():
                 if counter >= 3: 
                     print("Maximum tries exceeded. Exiting...")
                     exit()
+
+        #criar ficheiro .env, por a info, encriptalon e apagá-lo
+        f = open(".env", "x")
+
+        #Desencriptar o .aes escrever para lá as variáveis e voltar a encriptá-lo como na autenticação
+        try:
+            dotenv_file = dotenv.find_dotenv(raise_error_if_not_found=True) #argumento file name existe 
+        except OSError:
+            print('.env not foud')
+
+        config = dotenv_values(".env")
+
+        #por info
+        dotenv.set_key(dotenv_file, "USERNAME", username)
+        dotenv.set_key(dotenv_file, "ID", ID)
+        
+        #encriptá-lo
+        pyAesCrypt.encryptFile(".env", ".env.aes", username+save_pw)
+
+        #APAGA MALUCO
+        time.sleep(2)
+        os.remove(".env")
+
+
     else:
         #dizer que username/id estão mal e tentar outra vez
         print('Something went wrong')
