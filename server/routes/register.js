@@ -7,6 +7,20 @@ let app = express.Router()
 const buffertrim = require('buffertrim') 
 const symmetric = require('../symmetric_encryption')
 
+/**
+* Save token, symmetric key, symmetric key iv in DB
+*/
+/*function saveClientRegistration (username, token, symmetric_key, symmetric_key_iv) {
+    // Update DB
+    const sql = "UPDATE users SET token=?, symmetric_key=?, symmetric_key_iv=? WHERE username=?"
+    db.run(sql, [token, symmetric_key, symmetric_key_iv, username], (err, row) => {
+        if (err) 
+            return console.error(err.message)
+        if (row) 
+            console.log("Updated DB client: ", row)
+    });
+}*/
+
 app.get('/', function (req, res) {
     console.log(req.body);
     res.download('../server/public.pem');
@@ -47,11 +61,15 @@ app.post('/get_token', function (req, res) {
     console.log("ID: " + onetimeID);
     console.log("key: " + symmetric_key);
     console.log("iv: " + iv);
-    //confirmar na BD que cliente onetimeID é correto
+    // TODO: confirmar na BD que cliente onetimeID é correto
     //criar um token
     const token = Crypto.randomBytes(12).toString('base64').slice(0, 12);
     console.log("token: " + token)
     //**************************************************************************** */
+    
+    // Save token, symmetric key, symmetric key iv in DB
+    // TODO: test this 
+    /*saveClientRegistration(username, token, symmetric_key, iv);*/
     
     const decrypt_message = symmetric.decrypt(enc_message, iv, symmetric_key);
     const enc_token = symmetric.encrypt(token, iv, symmetric_key);

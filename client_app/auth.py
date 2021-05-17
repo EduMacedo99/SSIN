@@ -3,7 +3,7 @@ import symmetric_encryption
 import socket
 
 SERVER_IP_URL = "http://127.0.0.1:3000"
-USERNAME = input("username[only works for users in BD]: ")
+USERNAME = input("Username: ")
 
 """
 Perform an automatic authentication of the client with the server for each session
@@ -14,10 +14,8 @@ Perform an automatic authentication of the client with the server for each sessi
 is_registered = False
 
 ################# Identifying and authenticating the collaborator locally ################# 
-# Find env file of client
-# TODO: ...
-# Decrypt their private information
-# TODO: ...
+# TODO: Find env file of client
+# TODO: Decrypt their private information
 curr_token = "this is testing"
 symmetric_key = "wwiimwiegdgcyvdz"
 symmetric_key_iv = "hsbkjbsmdpgdwfib"
@@ -30,9 +28,9 @@ if is_registered:
         # (prof) em cada sessão, deverão escolher, pode ser o sistema operativo, um porto e comunica-lo ao servidor
         # Set up socket to talk to other clients after authentication, get >>port<<
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind(('0.0.0.0', 0))
-        port = s.getsockname()[1]
-        print("Listening on port:", port)
+        s.bind((socket.gethostname(), 0))
+        ip_port = s.getsockname()
+        print("Listening on:", ip_port)
         
         # Encrypt token
         enc_token = symmetric_encryption.encrypt(curr_token, symmetric_key_iv.encode(), symmetric_key.encode())
@@ -40,7 +38,7 @@ if is_registered:
         # Exhange current token with a new token
         res = requests.get(SERVER_IP_URL + "/auth", 
             json={
-                "msg":"I'm username " + USERNAME,
+                "msg":"I'm username " + USERNAME + ".",
                 "username": USERNAME,
                 "cl_token": enc_token,
                 } 
@@ -53,14 +51,13 @@ if is_registered:
             # Prove you are "username" and solve the challenge N 
             # Encrypt N, and send it back
             enc_challenge = symmetric_encryption.encrypt(res_content["challenge"], symmetric_key_iv.encode(), symmetric_key.encode())
-            
             # Send answer
             res = requests.get(SERVER_IP_URL + "/auth/challengeRefreshToken", 
                 json={
-                    "msg":"",
+                    "msg":"Challenge solved.",
                     "username": USERNAME,
                     "enc_challenge": enc_challenge,
-                    "port": port
+                    "ip_port": ip_port
                 } 
             )
             res_content = res.json()
@@ -70,8 +67,7 @@ if is_registered:
             if res.ok:
                 # Decrypt token
                 curr_token = symmetric_encryption.decrypt(res_content["token"], symmetric_key_iv.encode(), symmetric_key.encode())
-                # Save somewhere in client protected data
-                # TODO: ...
+                # TODO: Save somewhere in client protected data
                 print("Refresh token done.")
             else:
                 print("Authentication denied.")

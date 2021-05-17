@@ -58,14 +58,3 @@ print("encrypted message: " + token_encrypt["final_message"])
 decrypted_token = symmetric_encryption.decrypt(
     token_encrypt["final_message"], iv.encode(), symmetric_key.encode())
 print("decryptedmessage: " + decrypted_token)
-
-
-# save private data into a file for now
-username = "rita"
-data = {}
-data["username"] = username
-data["symmetric_key"] = symmetric_key
-data["iv"] = iv
-data["token"] = decrypted_token
-with open("resources/" + username + "_protected_data.txt", "w+") as outfile:
-    json.dump(data, outfile)

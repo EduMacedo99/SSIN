@@ -4,54 +4,56 @@ const express = require("express")
 let app = express.Router()
 const net = require("net")
 const symmetric = require("../symmetric_encryption")
-const db = require("../DBconnect.js")
+const DB = require("../DBconnect.js")
 
 const CHALLENGE_TIMEOUT = 10
 
 /**
- * Get client data from the BD with username
+ * Get client data from the DB with username
  */
 function getClient(res, username, callback){
   const sql = `SELECT * FROM users WHERE username = "`+ username +'"'
-  db.get(sql, (err, row) => {
+  DB.db.get(sql, (err, row) => {
       if (row == undefined){
-        console.log("User not found: " + username)
-        res.status(500).json({"msg":"username do not exist on the server."})
+        console.log("Authentication failed - User not found.")
+        res.status(500).json({"msg":"User not found."})
       }
       else callback(row)
   })
 }
 
 /**
-* Encrypt challenge and save challenge encrypted and their expire timeout on the BD
+* Save challenge and their expire timeout on the DB
 */
-function savaChallenge (username, challenge, timeout, symmetric_key, symmetric_key_iv) {
-  // Encrypt challenge
-  const enc_challenge =symmetric.encrypt(challenge, symmetric_key_iv, symmetric_key)
-  // Update BD
+function saveChallenge (username, challenge, timeout) {
+  // Update DB
   const sql = "UPDATE users SET challenge=?, challenge_timeout=? WHERE username=?"
-  db.run(sql, [enc_challenge, timeout, username], (err, row) => {
-      if (err) 
-          return console.error(err.message)
-      if (row) 
-          console.log("Updated BD client: ", row)
-  });
+  DB.db.run(sql, [challenge, timeout, username], DB.handleUpdateResult)
+}
+
+/**
+* Save new token and ip_port of client session
+*/
+function saveClientNewSession (username, token, ip_port) {
+    // Update DB
+    const sql = "UPDATE users SET token=?, ip_address=? WHERE username=?"
+    DB.db.run(sql, [token, ip_port, username], DB.handleUpdateResult)
 }
 
 /**
  * A client sends their username+token, and is asking to start a new session
  * If username+token exists, Authenticator Server sends a challenge (different each time)
- * TODO: put symmetric key + token on the BD in the register phase
  */
 app.get("/", function (req, res) {
     const { msg, username, cl_token} = req.body
     console.log("\nStart of authentication ...")
-    console.log(" client<  ?  >: " + msg)
+    console.log(" client<        ?         >: " + msg)
 
-    // Check if username and token matches BD
+    // Check if username and token matches DB
     getClient(res, username, (client) => {
       const { symmetric_key, symmetric_key_iv, token} = client
 
+      // TODO: after registration save in db the info, replace the aux values with the real values
       const aux_symmetric_key = "wwiimwiegdgcyvdz"
       const aux_symmetric_key_iv = "hsbkjbsmdpgdwfib"
       const aux_token = "this is testing"
@@ -59,7 +61,8 @@ app.get("/", function (req, res) {
       // Decrypt  token
       const token_decrypted = symmetric.decrypt(cl_token, aux_symmetric_key_iv, aux_symmetric_key)
       if(aux_token != token_decrypted){
-          res.status(500).json({"msg":"token do not macth this username."})
+          console.log("Authentication failed - token do not macth this username.")
+          res.status(500).json({"msg":"Token do not macth this username."})
           return
       }
 
@@ -71,8 +74,8 @@ app.get("/", function (req, res) {
       // The challenge has a challenge timeout that expires
       const expire_time = Date.now() + CHALLENGE_TIMEOUT
 
-      // Encrypt challenge and save it on the BD, and its expire timeout
-      savaChallenge(username, N, expire_time, aux_symmetric_key, aux_symmetric_key_iv)
+      // Save challenge on the DB, and its expire timeout
+      saveChallenge(username, N, expire_time, aux_symmetric_key_iv, aux_symmetric_key)
 
       res.status(200).json({"msg": username+ "? Prove it, challenge: " + N, challenge: N, timeout: expire_time})
     })
@@ -83,41 +86,47 @@ app.get("/", function (req, res) {
  * If client is correct, refresh token
  */
 app.get("/challengeRefreshToken", function (req, res) {
-  const { msg, username, enc_challenge, port} = req.body
-  console.log(" client<" + port + ">: " + msg)
+  const { msg, username, enc_challenge, ip_port} = req.body
+  console.log(" client<" + ip_port + ">: " + msg)
+
+  // TODO: after registration save in db the info, replace the aux values with the real values
+  const aux_symmetric_key = "wwiimwiegdgcyvdz"
+  const aux_symmetric_key_iv = "hsbkjbsmdpgdwfib"
 
   // Verify if is correct
-  // Get symmetric key and encrypted challenge from BD, + timeout
-  // TODO: ... 
-  const bd_symmetric_key = "wwiimwiegdgcyvdz"
-  const bd_iv = "hsbkjbsmdpgdwfib"
-  const bd_enc_challenge = ""
-  const bd_timeout = 1621181273203555555555
-  // Encrypted challenge from BD must be equal to answer
-  if(bd_timeout < Date.now()){
-    console.log(Date.now())
-    res.status(500).json({"msg":"challenge lifetime expired."})
-    if(bd_enc_challenge != "")//enc_challenge){
+  // Get symmetric key and encrypted challenge from DB, + timeout
+  getClient(res, username, (client) => {
+    const { challenge, timeout, symmetric_key, symmetric_key_iv, } = client
+
+    // Check challenge lifetime
+    if(timeout < Date.now()){
+      console.log("Authentication failed - challenge lifetime expired.")
+      res.status(500).json({"msg":"Challenge lifetime expired."})
+      return
+    }
+    // Decrypt challenge answer
+    const dec_challenge = symmetric.decrypt(enc_challenge, aux_symmetric_key_iv, aux_symmetric_key)
+    // Encrypted challenge from DB must be equal to answer: enc_challenge
+    if(challenge != dec_challenge){
+      console.log("Authentication failed - answer do not macth.")
       res.status(500).json({"msg":"Answer do not macth."})
-    
-    console.log("Authentication failed.")
-    return
-  }
+      return
+    }
 
-  // If so, distribute a short-term session key(new token) for being used between the two
-  // Create new token
-  const new_token = Crypto.randomBytes(12).toString("base64").slice(0, 12)
-          
-  // Update BD with new token + port of client session
-  // TODO: ...
+    // (slides) If so, distribute a short-term session key(new token) for being used between the two
+    // Create new token
+    const new_token = Crypto.randomBytes(12).toString("base64").slice(0, 12)
+            
+    // Update DB with new token + ip_port of client session
+    saveClientNewSession (username, new_token, ip_port)
 
-  // Encrypt token
-  const enc_token = symmetric.encrypt(new_token, bd_iv, bd_symmetric_key)
+    // Encrypt new token
+    const enc_token = symmetric.encrypt(new_token, aux_symmetric_key_iv, aux_symmetric_key)
 
-  // Send new token to the client
-  res.status(200).json({"msg":"okay, it is a match.", token: enc_token})
-  console.log("Authentication done.")
-
+    // Send new token to the client
+    res.status(200).json({"msg":"Okay, it is a match.", token: enc_token})
+    console.log("Authentication done.")
+  })
 })
 
 module.exports = app
