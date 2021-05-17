@@ -35,12 +35,6 @@ if path.exists(".env.aes"):
 else:
     registration()
 
-
-try: registered = config['REGISTERED']
-except KeyError:
-    registered = '0'
-    empty = True
-
 def registration():
     username = input('Insert the username you chose on the server registration:\n')
     ID = input('Insert the unique ID you were given in the server registration:\n')
