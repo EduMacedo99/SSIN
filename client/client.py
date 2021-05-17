@@ -11,27 +11,41 @@ from getpass import getpass
 
 #pyAesCrypt.encryptFile(".env", ".env.aes", password)
 #pyAesCrypt.decryptFile(".env.aes", ".env", password)
+counter = 0
 
 #ver se .env.aes existe - se não existir é pq nao houve registo
 if path.exists(".env.aes"):
-    #already registered
-    #ask for password
-    password = getpass()
-    #decrypt file (TODO: por num while para 3 tentativas)
-    try:
-        pyAesCrypt.decryptFile(".env.aes", ".env", password)
-    except ValueError:
-        print('Wrong password (or file is corrupted).')
+    
+    while counter < 3:
+        print('> Already Registered\n> Proceeding with authentication')
+        
+        #ask for password
+        username = input('Username: ')
+        
+        #TODO: pedir uma pass complicada
+        password = getpass()
+
+        try:
+            pyAesCrypt.decryptFile(".env.aes", ".env", username+password)
+            break
+        except ValueError:
+            print('Wrong username/password (or file is corrupted).')
+            counter += 1
+            if counter >= 3: exit()
+
     #get info
     try:
         dotenv_file = dotenv.find_dotenv(raise_error_if_not_found=True) #argumento file name existe 
     except OSError:
         print('.env not foud')
+        exit()
 
     config = dotenv_values(".env") 
     print(config)   
+
     #delete newly created .env
     os.remove(".env")
+    request_service(username)
 else:
     registration()
 
@@ -55,13 +69,3 @@ def registration():
     #     dotenv.set_key(dotenv_file, "REGISTERED", '0')
     #     print('Invalid username/ID')
 
-
-
-if registered == '0':
-    registration()
-else: 
-    print('Already successfully registered\n Initiating authentication')
-    
-    username = config['USERNAME']
-    print(username)
-    request_service(username)
