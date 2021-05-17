@@ -17,10 +17,14 @@ def registration():
     success = serverReg()
 
     if success:
-        dotenv.set_key(dotenv_file, "USERNAME", username)
-        dotenv.set_key(dotenv_file, "ID", ID)
-        #polos a escolher uma password
 
+        #Desencriptar o .aes escrever para lá as variàveis e voltar a encriptá-lo como na autenticação
+
+        #dotenv.set_key(dotenv_file, "USERNAME", username)
+        #dotenv.set_key(dotenv_file, "ID", ID)
+        
+        
+        #polos a escolher uma password
         while counter_pw < 3:
             #Ask for strong password
             print('Insert your a new password for this device. The password should at least:\n\t- Have 8 characters or more\n\t- Include Uppercase letters\n\t- Include numbers')
