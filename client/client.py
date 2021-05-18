@@ -27,6 +27,8 @@ def registration():
 
     if success:
 
+        print('\nServer Registration was successfull!')
+
         # polos a escolher uma password
         while counter_pw < 3:
             # Ask for strong password
@@ -57,7 +59,7 @@ def registration():
 
         config = dotenv_values(".env")
 
-        # por info
+        # Colocar info no .env
         dotenv.set_key(dotenv_file, "USERNAME", username)
         dotenv.set_key(dotenv_file, "ID", ID)
 
@@ -123,8 +125,9 @@ counter = 0
 # ver se .env.aes existe - se não existir é pq nao houve registo
 if path.exists(".env.aes"):
 
+    print('> Already Registered\n> Proceeding with authentication')
+
     while counter < 3:
-        print('> Already Registered\n> Proceeding with authentication')
 
         # ask for password
         username = input('Username: ')
@@ -138,6 +141,7 @@ if path.exists(".env.aes"):
             print('Wrong username/password (or file is corrupted).')
             counter += 1
             if counter >= 3:
+                print('Number of tries exceeded. Terminating program...')
                 exit()
 
     # get info
