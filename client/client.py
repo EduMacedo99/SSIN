@@ -8,20 +8,28 @@ import pyAesCrypt
 from request_service import request_service
 from getpass import getpass
 import re
-import time
+import random
+import string
+import requests
+import symmetric_encryption
+import base64
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
+
 
 def registration():
     counter_pw = 0
-    username = input('Insert the username you chose on the server registration:\n')
+    username = input(
+        'Insert the username you chose on the server registration:\n')
     ID = input('Insert the unique ID you were given in the server registration:\n')
-    
-    success = serverReg()
+
+    success = serverReg(ID)
 
     if success:
 
-        #polos a escolher uma password
+        # polos a escolher uma password
         while counter_pw < 3:
-            #Ask for strong password
+            # Ask for strong password
             print('Insert your a new password for this device. The password should at least:\n\t- Have 8 characters or more\n\t- Include Uppercase letters\n\t- Include numbers')
             save_pw = getpass()
 
@@ -32,40 +40,76 @@ def registration():
                 break
             else:
                 print('Password not strong enough... Try again')
-                counter_pw +=1
-                if counter >= 3: 
+                counter_pw += 1
+                if counter >= 3:
                     print("Maximum tries exceeded. Exiting...")
                     exit()
 
-        #criar ficheiro .env, por a info, encriptalon e apagá-lo
+        # criar ficheiro .env, por a info, encriptalon e apagá-lo
         f = open(".env", "x")
 
-        #Desencriptar o .aes escrever para lá as variáveis e voltar a encriptá-lo como na autenticação
+        # Desencriptar o .aes escrever para lá as variáveis e voltar a encriptá-lo como na autenticação
         try:
-            dotenv_file = dotenv.find_dotenv(raise_error_if_not_found=True) #argumento file name existe 
+            dotenv_file = dotenv.find_dotenv(
+                raise_error_if_not_found=True)  # argumento file name existe
         except OSError:
             print('.env not foud')
 
         config = dotenv_values(".env")
 
-        #por info
+        # por info
         dotenv.set_key(dotenv_file, "USERNAME", username)
         dotenv.set_key(dotenv_file, "ID", ID)
-        
-        #encriptá-lo
+
+        # encriptá-lo
         pyAesCrypt.encryptFile(".env", ".env.aes", username+save_pw)
 
-        #APAGA MALUCO
+        # APAGA MALUCO
         f.close()
         os.remove(".env")
 
-
     else:
-        #dizer que username/id estão mal e tentar outra vez
+        # dizer que username/id estão mal e tentar outra vez
         print('Something went wrong')
 
-def serverReg():
-    print('codigo do raul aqui (?)')
+
+def serverReg(one_time_ID):
+    SERVER_KEY_PATH = "resources/server_public.pem"
+    SERVER_URL = "http://127.0.0.1:3000/"
+
+    # prepare encryption variables
+    size = 16
+    iv = ''.join(random.choice(string.ascii_lowercase) for x in range(size))
+    symmetric_key = ''.join(random.choice(string.ascii_lowercase)
+                            for x in range(size))
+
+    # First-Registration -> get server public key
+    # get server public key
+    response = requests.get("http://127.0.0.1:3000/register")
+    open('SERVER_KEY_PATH', 'wb').write(response.content)
+
+    # encrypt one_time_ID, symmetric_key and iv with server public  key
+    key = RSA.importKey(open(SERVER_KEY_PATH).read())
+    cipher = PKCS1_OAEP.new(key)
+
+    one_time_ID_encrypt = base64.b64encode(
+        cipher.encrypt(one_time_ID.encode("utf-8")))
+    encrypt_key = base64.b64encode(
+        cipher.encrypt(symmetric_key.encode("utf-8")))
+    encrypt_iv = base64.b64encode(cipher.encrypt(iv.encode('utf-8')))
+    token_encrypt = requests.post(
+        SERVER_URL + "register/get_token",
+        json={
+            "ID_encrypt": one_time_ID_encrypt,
+            "encrypt_key": encrypt_key,
+            "encrypt_iv": encrypt_iv,
+        },
+    ).json()
+    print("encrypted token: " + token_encrypt["token"])
+    decrypted_token = symmetric_encryption.decrypt(
+        token_encrypt["token"], iv.encode(), symmetric_key.encode())
+    print("decryptedtoken: " + decrypted_token)
+    print('server registration done')
     return True
 
 
@@ -76,15 +120,15 @@ def serverReg():
 #pyAesCrypt.decryptFile(".env.aes", ".env", password)
 counter = 0
 
-#ver se .env.aes existe - se não existir é pq nao houve registo
+# ver se .env.aes existe - se não existir é pq nao houve registo
 if path.exists(".env.aes"):
-    
+
     while counter < 3:
         print('> Already Registered\n> Proceeding with authentication')
-        
-        #ask for password
+
+        # ask for password
         username = input('Username: ')
-        
+
         password = getpass()
 
         try:
@@ -93,23 +137,22 @@ if path.exists(".env.aes"):
         except ValueError:
             print('Wrong username/password (or file is corrupted).')
             counter += 1
-            if counter >= 3: exit()
+            if counter >= 3:
+                exit()
 
-    #get info
+    # get info
     try:
-        dotenv_file = dotenv.find_dotenv(raise_error_if_not_found=True) #argumento file name existe 
+        dotenv_file = dotenv.find_dotenv(
+            raise_error_if_not_found=True)  # argumento file name existe
     except OSError:
         print('.env not foud')
         exit()
 
-    config = dotenv_values(".env") 
-    print(config)   
+    config = dotenv_values(".env")
+    print(config)
 
-    #delete newly created .env
+    # delete newly created .env
     os.remove(".env")
     request_service(username)
 else:
     registration()
-
-
-

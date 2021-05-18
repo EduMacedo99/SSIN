@@ -30,12 +30,10 @@ app.post('/get_token', function (req, res) {
     const enc_ID = req.body.ID_encrypt;
     const enc_iv = req.body.encrypt_iv;
     const enc_key = req.body.encrypt_key;
-    const enc_message = req.body.message;
  
     console.log("ID: " + enc_ID);
     console.log("iv: " + enc_iv)
     console.log("key: " + enc_key)
-    console.log("message: " + enc_message);
 
     const pem = fs.readFileSync('../server/private.pem', 'utf8');
     const privateKey = forge.pki.decryptRsaPrivateKey(pem, '2210');
@@ -71,14 +69,10 @@ app.post('/get_token', function (req, res) {
     // TODO: test this 
     /*saveClientRegistration(username, token, symmetric_key, iv);*/
     
-    const decrypt_message = symmetric.decrypt(enc_message, iv, symmetric_key);
     const enc_token = symmetric.encrypt(token, iv, symmetric_key);
-    console.log("message: " + decrypt_message);
     console.log("enc_token: " + enc_token);
-    const final_message = symmetric.encrypt(decrypt_message, iv, symmetric_key);
     res.json({
         'token': enc_token,
-        'final_message': final_message,
     });
 
 });
