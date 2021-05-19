@@ -1,7 +1,7 @@
 const express = require('express');
 //const sqlite3 = require('sqlite3').verbose();
 //const Math = require('Math');
-const DBconnect = require('../DBconnect.js');
+const DBconnect = require('../DBconnect.js').db;
 //const DBtest = require('../databaseTest.js');
 let app = express.Router()
 
@@ -48,6 +48,43 @@ function serviceResponse (req, res) {
   }
   res.send("value = " + value);
 }
+
+
+
+
+
+
+app.post('/set_ip', async function (req, res){
+  var sql_set_ip = "UPDATE users SET ip_address=?";
+  DBconnect.run(sql_set_ip, [req.query.ip_address], async function (err, row) {
+      if (err) {
+        return console.error(err.message);
+      }
+      if (this.changes == 0){
+        console.log(`User ${req.query.username} not found`);
+        console.log("No rows to update");
+        res.sendStatus(500)
+      }
+      else if (this.changes > 0) {
+        console.log(`Row(s) updated: ${this.changes}`);
+        console.log(req.query.username + " ip set to " + req.query.ip_address);
+        res.sendStatus(201)
+      }
+    });
+  });
+
+app.post('/get_ip', function(req, res){
+  
+  var sql_get_ip = "SELECT ip_address FROM users WHERE username=?";
+  DBconnect.get(sql_get_ip, [req.query.username], (err, row) => {
+    if (err) {
+      return console.error(err.message);
+    }
+    res.send("ip = "+row.ip_address);
+  });
+});
+
+
 
 app.get('/', function (req, res) {
     

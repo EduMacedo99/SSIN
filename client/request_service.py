@@ -1,5 +1,7 @@
 import requests
 
+SERVER_ADDRESS = "http://127.0.0.1:3000"
+
 class ExceptionNoUsernameFound(Exception):
     pass
 
@@ -20,9 +22,33 @@ def request_service(username):
         return
     print(data)
     token = requests.get(
-        "http://127.0.0.1:3000/service", params=data)
+        SERVER_ADDRESS + "/service", params=data)
     print(token.text)
 
 
-#if __name__=='__main__':
-#    request_service("Pedro")
+def request_set_ip(username, ip):
+    if username == None:
+        raise ExceptionNoUsernameFound
+    data = {"username":username, "ip_address":ip}
+    
+    print(data)
+    token = requests.post(
+        SERVER_ADDRESS + "/service/set_ip", params=data)
+    print(token.text)
+
+
+def request_get_ip(username):
+    if username == None:
+        raise ExceptionNoUsernameFound
+    data = {"username":username}
+    
+    print(data)
+    token = requests.post(
+        SERVER_ADDRESS + "/service/get_ip", params=data)
+    print(token.text)
+
+
+if __name__=='__main__':
+    request_service("Pedro")
+    request_set_ip("Pedro", "127.0.0.1:1000")
+    request_get_ip("Pedro")

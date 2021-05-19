@@ -1,7 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 
 // open the database
-let db = new sqlite3.Database('database/Database.db', sqlite3.OPEN_READWRITE, (err) => {
+let db = new sqlite3.Database('../database/Database.db', sqlite3.OPEN_READWRITE, (err) => {
   if (err) {
     console.error(err.message);
   }
@@ -16,12 +16,11 @@ db.get(sql, (err, row) => {
   if (err) {
     return console.error(err.message);
   }
-  if (row) {
+  else if (row) {
     console.log(row.username);
     console.log(row.ip_address);
   }
 });
-
 
 function setIpAddress(username, ip){
   var sql_set_ip = "UPDATE users SET ip_address=? WHERE username=?";
