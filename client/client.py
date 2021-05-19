@@ -5,7 +5,7 @@ from os import path
 from dotenv import load_dotenv, dotenv_values
 import dotenv
 import pyAesCrypt
-from request_service import request_service
+from request_service import request_service, request_set_ip
 from getpass import getpass
 import re
 import random
@@ -15,6 +15,9 @@ import symmetric_encryption
 import base64
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
+
+
+LOCALHOST = "127.0.0.1"
 
 
 def registration():
@@ -157,6 +160,8 @@ if path.exists(".env.aes"):
 
     # delete newly created .env
     os.remove(".env")
+    my_port = random.randint(10000, 65535)
+    request_set_ip(username, LOCALHOST + ":" + my_port)
     request_service(username)
 else:
     registration()
