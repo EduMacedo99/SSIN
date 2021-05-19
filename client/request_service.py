@@ -1,9 +1,7 @@
 import requests
+from utils import *
 
-SERVER_ADDRESS = "http://127.0.0.1:3000"
 
-class ExceptionNoUsernameFound(Exception):
-    pass
 
 def request_service(username):
     print("Choose the desired service:")
@@ -31,10 +29,9 @@ def request_set_ip(username, ip):
         raise ExceptionNoUsernameFound
     data = {"username":username, "ip_address":ip}
     
-    print(data)
     token = requests.post(
         SERVER_ADDRESS + "/service/set_ip", params=data)
-    print(token.text)
+    #print(token.text)
 
 
 def request_get_ip(username):
@@ -42,10 +39,13 @@ def request_get_ip(username):
         raise ExceptionNoUsernameFound
     data = {"username":username}
     
-    print(data)
     token = requests.post(
         SERVER_ADDRESS + "/service/get_ip", params=data)
-    print(token.text)
+        
+    if (token.text == "USER_NOT_FOUND"):
+        raise ExceptionUserNotFound
+    else:
+        return token.text.split(" ")[-1]
 
 
 if __name__=='__main__':

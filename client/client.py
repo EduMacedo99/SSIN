@@ -1,11 +1,13 @@
 #!python3
+from request_service import ExceptionUserNotFound
+from socket_functions import connect_socket, listen_socket
 import os
 import os.path
 from os import path
 from dotenv import load_dotenv, dotenv_values
 import dotenv
 import pyAesCrypt
-from request_service import request_service, request_set_ip
+from request_service import request_service, request_set_ip, request_get_ip
 from getpass import getpass
 import re
 import random
@@ -15,9 +17,7 @@ import symmetric_encryption
 import base64
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
-
-
-LOCALHOST = "127.0.0.1"
+from utils import *
 
 
 def registration():
@@ -58,7 +58,7 @@ def registration():
             dotenv_file = dotenv.find_dotenv(
                 raise_error_if_not_found=True)  # argumento file name existe
         except OSError:
-            print('.env not foud')
+            print('.env not found')
 
         config = dotenv_values(".env")
 
@@ -118,6 +118,41 @@ def serverReg(one_time_ID):
     return True
 
 
+def main_menu():
+    print("Options:")
+    print("1 - Request service")
+    print("2 - Send message")
+    print("3 - Wait for messages")
+    option = int(input())
+    if option == 1:
+        request_service
+    elif option == 2:
+        username = input("Which client do you want to contact?\n")
+        try:
+            address_and_port = request_get_ip(username)
+            port = int(address_and_port.split(":")[1])
+            print(port)
+            connect_socket(port)
+        except ExceptionUserNotAvailable:
+            print("This client is not available at the moment\n")
+            main_menu()
+        except ExceptionUserNotFound:
+            print("This username does not exist in the server database\n")
+            main_menu()
+    elif option == 3:
+        #username = dotenv_values(".env")["USERNAME"]
+        username = "Pedro"
+        my_port = random.randint(1024, 49151)
+        request_set_ip(username, LOCALHOST + ":" + str(my_port))
+        listen_socket(my_port)
+    else:
+        print("Invalid option\n")
+        main_menu()
+
+
+#main_menu()
+
+
 ########################################################### MAIN SCRIPT ###########################################################
 
 
@@ -160,8 +195,9 @@ if path.exists(".env.aes"):
 
     # delete newly created .env
     os.remove(".env")
-    my_port = random.randint(10000, 65535)
+    my_port = random.randint(1024, 49151)
     request_set_ip(username, LOCALHOST + ":" + my_port)
+    main_menu()
     request_service(username)
 else:
     registration()

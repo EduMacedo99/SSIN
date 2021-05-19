@@ -80,7 +80,12 @@ app.post('/get_ip', function(req, res){
     if (err) {
       return console.error(err.message);
     }
-    res.send("ip = "+row.ip_address);
+    if (row == undefined){
+      res.send("USER_NOT_FOUND");
+    }
+    else {
+      res.send("ip = "+row.ip_address);
+    }
   });
 });
 
