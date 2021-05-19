@@ -87,7 +87,6 @@ app.post('/get_ip', function(req, res){
 
 
 app.get('/', function (req, res) {
-    
     checkSecurityLevel(req, res, () => {
       serviceResponse(req, res);
     });
