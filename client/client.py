@@ -80,7 +80,7 @@ def registration():
 
 
 def serverReg(one_time_ID):
-    SERVER_KEY_PATH = "SERVER_KEY_PATH"
+    SERVER_KEY_PATH = "resources/server_public.pem"
     SERVER_URL = "http://127.0.0.1:3000/"
 
     # prepare encryption variables
