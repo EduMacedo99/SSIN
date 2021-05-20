@@ -1,4 +1,5 @@
 #!python3
+from auth import authentication
 from request_service import ExceptionUserNotFound
 from socket_functions import connect_socket, listen_socket
 import os
@@ -79,7 +80,7 @@ def registration():
 
 
 def serverReg(one_time_ID):
-    SERVER_KEY_PATH = "resources/server_public.pem"
+    SERVER_KEY_PATH = "SERVER_KEY_PATH"
     SERVER_URL = "http://127.0.0.1:3000/"
 
     # prepare encryption variables
@@ -195,6 +196,10 @@ if path.exists(".env.aes"):
 
     # delete newly created .env
     os.remove(".env")
+    
+    # Start authentication
+    # authentication()
+    
     my_port = random.randint(1024, 49151)
     request_set_ip(username, LOCALHOST + ":" + my_port)
     main_menu()

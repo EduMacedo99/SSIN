@@ -21,10 +21,9 @@ symmetric_key = "wwiimwiegdgcyvdz"
 symmetric_key_iv = "hsbkjbsmdpgdwfib"
 is_registered = True
 
+def authentication():
 ################# Authenticate with the server ############################################
 # Inform server you want to start a new session
-if is_registered:
-    try:
         # (prof) em cada sessão, deverão escolher, pode ser o sistema operativo, um porto e comunica-lo ao servidor
         # Set up socket to talk to other clients after authentication, get >>port<<
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -74,5 +73,3 @@ if is_registered:
         else:
             print("Authentication denied.")
 
-    except IOError:
-        print("error: failed to establish a connection with the server.")
