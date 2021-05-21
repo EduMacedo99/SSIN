@@ -11,9 +11,8 @@ Perform an automatic authentication of the client with the server for each sessi
 """
 
 # Identifying and authenticating the collaborator locally
-def authenticationLocally():
+def authenticationLocally(username):
     
-    username = input("Username: ")
     #...
     
     config = { 

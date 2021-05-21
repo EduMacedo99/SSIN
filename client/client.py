@@ -111,7 +111,7 @@ def serverReg(one_time_ID):
             "ID_encrypt": one_time_ID_encrypt.decode(),
             "encrypt_key": encrypt_key.decode(),
             "encrypt_iv": encrypt_iv.decode(),
-        }, #88nXW2Hjh66O
+        }, 
     ).json()
     print("encrypted token: " + token_encrypt["token"])
     decrypted_token = symmetric_encryption.decrypt(
@@ -155,23 +155,8 @@ def main_menu():
 
 #main_menu()
 
-
-########################################################### MAIN SCRIPT ###########################################################
-
-
-#pyAesCrypt.encryptFile(".env", ".env.aes", password)
-#pyAesCrypt.decryptFile(".env.aes", ".env", password)
-counter = 0
-
-# ver se .env.aes existe - se não existir é pq nao houve registo
-if path.exists(".env.aes"):
-    
-    print('> Already Registered\n> Proceeding with authentication')
-    
-    ## Identifying and authenticating the collaborator locally
-    #TODO: delete or replace the fucntion with the right code after, this just sets info into the config
-    config = authenticationLocally()
-    
+def decrypt_and_read_dotenv():
+    counter = 0
     while counter < 3:
 
         # ask for password
@@ -198,17 +183,38 @@ if path.exists(".env.aes"):
         exit()
 
     config = dotenv_values(".env")
-    print(config)
 
     # delete newly created .env
     os.remove(".env")
+    print(config)
+    return config
+
+
+########################################################### MAIN SCRIPT ###########################################################
+
+
+#pyAesCrypt.encryptFile(".env", ".env.aes", password)
+#pyAesCrypt.decryptFile(".env.aes", ".env", password)
+
+
+# ver se .env.aes existe - se não existir é pq nao houve registo
+if path.exists(".env.aes"):
+    
+    print('> Already Registered\n> Proceeding with authentication')
+    
+    dotenv_config = decrypt_and_read_dotenv()
+    username = dotenv_config["USERNAME"]
+
+    ## Identifying and authenticating the collaborator locally
+    #TODO: delete or replace the fucntion with the right code after, this just sets info into the config
+    config = authenticationLocally(username)
     
     ## Authenticate with the server and start a new session
     authenticationServer(config)
     
     ## Services 
     my_port = random.randint(1024, 49151)
-    request_set_ip(username, LOCALHOST + ":" + my_port)
+    request_set_ip(username, LOCALHOST + ":" + str(my_port))
     main_menu()
     request_service(username)
 else:
