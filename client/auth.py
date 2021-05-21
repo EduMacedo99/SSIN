@@ -2,8 +2,6 @@ import requests
 import symmetric_encryption 
 import socket
 
-from io import StringIO
-
 SERVER_IP_URL = "http://127.0.0.1:3000"
 
 """
@@ -14,7 +12,6 @@ Perform an automatic authentication of the client with the server for each sessi
 
 # Identifying and authenticating the collaborator locally
 def authenticationLocally():
-    
     
     username = input("Username: ")
     #...
