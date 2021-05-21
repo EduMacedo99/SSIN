@@ -1,5 +1,5 @@
 #!python3
-from auth import authentication
+from auth import authenticationLocally, authenticationServer
 from request_service import ExceptionUserNotFound
 from socket_functions import connect_socket, listen_socket
 import os
@@ -163,9 +163,13 @@ counter = 0
 
 # ver se .env.aes existe - se não existir é pq nao houve registo
 if path.exists(".env.aes"):
-
+    
     print('> Already Registered\n> Proceeding with authentication')
-
+    
+    ## Identifying and authenticating the collaborator locally
+    #TODO: delete or replace the fucntion with the right code after, this just sets info into the config
+    config = authenticationLocally()
+    
     while counter < 3:
 
         # ask for password
@@ -197,9 +201,10 @@ if path.exists(".env.aes"):
     # delete newly created .env
     os.remove(".env")
     
-    # Start authentication
-    # authentication()
+    ## Authenticate with the server and start a new session
+    authenticationServer(config)
     
+    ## Services 
     my_port = random.randint(1024, 49151)
     request_set_ip(username, LOCALHOST + ":" + my_port)
     main_menu()
