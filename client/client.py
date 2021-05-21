@@ -21,15 +21,18 @@ from Crypto.PublicKey import RSA
 from utils import *
 
 
+#desparguetar isto
+saveEnv = []
+
 def registration():
     counter_pw = 0
     username = input(
         'Insert the username you chose on the server registration:\n')
     ID = input('Insert the unique ID you were given in the server registration:\n')
 
-    success = serverReg(ID)
+    serverInfo = serverReg(ID)
 
-    if success:
+    if len(serverInfo) > 0:
 
         print('\nServer Registration was successfull!')
 
@@ -47,7 +50,7 @@ def registration():
             else:
                 print('Password not strong enough... Try again')
                 counter_pw += 1
-                if counter >= 3:
+                if counter_pw >= 3:
                     print("Maximum tries exceeded. Exiting...")
                     exit()
 
@@ -64,6 +67,8 @@ def registration():
         config = dotenv_values(".env")
 
         # Colocar info no .env
+        dotenv.set_key(dotenv_file, "KEY", saveEnv[0])
+        dotenv.set_key(dotenv_file, "TOKEN", saveEnv[1])
         dotenv.set_key(dotenv_file, "USERNAME", username)
         dotenv.set_key(dotenv_file, "ID", ID)
 
@@ -118,7 +123,11 @@ def serverReg(one_time_ID):
         token_encrypt["token"], iv.encode(), symmetric_key.encode())
     print("decryptedtoken: " + decrypted_token)
     print('server registration done')
-    return True
+
+    saveEnv.append(symmetric_key)
+    saveEnv.append(decrypted_token)
+
+    return saveEnv
 
 
 def main_menu():
@@ -193,10 +202,6 @@ def decrypt_and_read_dotenv():
 ########################################################### MAIN SCRIPT ###########################################################
 
 
-#pyAesCrypt.encryptFile(".env", ".env.aes", password)
-#pyAesCrypt.decryptFile(".env.aes", ".env", password)
-
-
 # ver se .env.aes existe - se não existir é pq nao houve registo
 if path.exists(".env.aes"):
     
@@ -204,13 +209,9 @@ if path.exists(".env.aes"):
     
     dotenv_config = decrypt_and_read_dotenv()
     username = dotenv_config["USERNAME"]
-
-    ## Identifying and authenticating the collaborator locally
-    #TODO: delete or replace the fucntion with the right code after, this just sets info into the config
-    config = authenticationLocally(username)
     
     ## Authenticate with the server and start a new session
-    authenticationServer(config)
+    #authenticationServer(dotenv_config)
     
     ## Services 
     my_port = random.randint(1024, 49151)

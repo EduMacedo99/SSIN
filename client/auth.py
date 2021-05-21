@@ -27,9 +27,9 @@ def authenticationLocally(username):
 # Authenticate with the server and start a new session
 def authenticationServer(config):
     
-    username = config["username"]
-    curr_token = config["token"]
-    symmetric_key = config["symmetric_key"]
+    username = config["USERNAME"]
+    curr_token = config["TOKEN"]
+    symmetric_key = config["KEY"]
     symmetric_key_iv = config["symmetric_key_iv"]
     
     # (prof) em cada sessão, deverão escolher, pode ser o sistema operativo, um porto e comunica-lo ao servidor
