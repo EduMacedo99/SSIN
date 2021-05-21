@@ -9,7 +9,7 @@ CREATE TABLE users (username CHAR[8] NOT NULL PRIMARY KEY,
                     token TEXT,
                     symmetric_key TEXT,
                     symmetric_key_iv TEXT,
-                    challenge TETX,
+                    challenge TEXT,
                     challenge_timeout DATE
             );
 

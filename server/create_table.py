@@ -14,10 +14,10 @@ def create_table(conn=sqlite3.connect('database/Database.db')):
                      security_level INT CHECK(3 >= security_level >= 1),
                      one_time_id TEXT,
                      ip_address TEXT,
-                     token TEXT
+                     token TEXT,
                      symmetric_key TEXT,
                      symmetric_key_iv TEXT,
-                     challenge TETX,
+                     challenge TEXT,
                      challenge_timeout DATE
                  )
                  ''')
@@ -29,7 +29,7 @@ def new_user(username, password, security_level, one_time_id, connection=sqlite3
                  + sha256(bytes(password, "ascii")).hexdigest() + '", "'
                  + security_level + '", "'
                  + sha256(bytes(one_time_id, "ascii")).hexdigest() +
-                 '", null, null, null, null, null);')
+                 '", null, null, null, null, null, null);')
 
 def generate_id():
     chrs = string.ascii_letters + string.digits

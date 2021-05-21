@@ -34,7 +34,7 @@ def new_user(username, password, security_level, one_time_id, connection=sqlite3
                  + sha256(bytes(password, "ascii")).hexdigest() + '", "'
                  + security_level + '", "'
                  + sha256(bytes(one_time_id, "ascii")).hexdigest() +
-                 '", null, null, null, null, null, null, null);')
+                 '", null, null, null, null, null, null);')
 
 
 def display_table(connection=sqlite3.connect('database/Database.db')):

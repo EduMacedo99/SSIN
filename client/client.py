@@ -80,6 +80,8 @@ def registration():
 
 
 def serverReg(one_time_ID):
+    print(type(one_time_ID))
+    print(one_time_ID)
     SERVER_KEY_PATH = "resources/server_public.pem"
     SERVER_URL = "http://127.0.0.1:3000/"
 
@@ -106,10 +108,10 @@ def serverReg(one_time_ID):
     token_encrypt = requests.post(
         SERVER_URL + "register/get_token",
         json={
-            "ID_encrypt": one_time_ID_encrypt,
-            "encrypt_key": encrypt_key,
-            "encrypt_iv": encrypt_iv,
-        },
+            "ID_encrypt": one_time_ID_encrypt.decode(),
+            "encrypt_key": encrypt_key.decode(),
+            "encrypt_iv": encrypt_iv.decode(),
+        }, #88nXW2Hjh66O
     ).json()
     print("encrypted token: " + token_encrypt["token"])
     decrypted_token = symmetric_encryption.decrypt(
