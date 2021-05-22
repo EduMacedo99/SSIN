@@ -101,7 +101,7 @@ def server_reg(username, one_time_ID):
     # First-Registration -> get server public key
     # get server public key
     response = requests.get(SERVER_URL + "register")
-    open('SERVER_KEY_PATH', 'wb').write(response.content)
+    open(SERVER_KEY_PATH, 'wb').write(response.content)
 
     # encrypt one_time_id, symmetric_key and iv with serverd public  key
     key = RSA.importKey(open(SERVER_KEY_PATH).read())
@@ -121,7 +121,7 @@ def server_reg(username, one_time_ID):
             "username": username
         },
     )
-    print(token_encrypt.status_code)
+    # print(token_encrypt.status_code)
     if token_encrypt.status_code == 404:
         print('Wrong username')
         return saveEnv
@@ -130,10 +130,10 @@ def server_reg(username, one_time_ID):
         return saveEnv
     else:
         token_encrypt = token_encrypt.json()
-        print("encrypted token: " + token_encrypt["token"])
+        # print("encrypted token: " + token_encrypt["token"])
         decrypted_token = symmetric_encryption.decrypt(
             token_encrypt["token"], iv.encode(), symmetric_key.encode())
-        print("decryptedtoken: " + decrypted_token)
+        # print("decryptedtoken: " + decrypted_token)
         print("> Server Registration was successfull!\n")
         saveEnv.append(symmetric_key)
         saveEnv.append(decrypted_token)
@@ -145,9 +145,12 @@ def main_menu(username, my_port):
     print("1 - Request service")
     print("2 - Send message")
     print("3 - Wait for messages")
-    option = int(input())
+    print("4 - Exit")
+    option = int(input("option: "))
     if option == 1:
-        request_service
+        print("")
+        dotenv_config = decrypt_and_read_dotenv()
+        request_service(dotenv_config)
     elif option == 2:
         username = input("Which client do you want to contact?\n")
         try:
@@ -166,9 +169,15 @@ def main_menu(username, my_port):
         #my_port = random.randint(1024, 49151)
         #request_set_ip(username, LOCALHOST + ":" + str(my_port))
         listen_socket(my_port)
+    elif option == 4:
+        print("> Exiting ...\n")
+        return
     else:
         print("Invalid option\n")
         main_menu(username, my_port)
+     
+    print("\n")
+    main_menu(username, my_ip_port)
 
 def decrypt_and_read_dotenv():
     global keyToDecrypt
@@ -203,10 +212,10 @@ def decrypt_and_read_dotenv():
     config = dotenv_values(".env")
 
 
-    print('KEY TO DECRYPT > ' + keyToDecrypt)
+    print('(KEY TO DECRYPT > ' + keyToDecrypt + ")")
     # delete newly created .env
     os.remove(".env")
-    print(config)
+    #print(config)
     return config
 
 def user_is_registred(username):
@@ -228,7 +237,7 @@ def authentication():
 
 ########################################################### MAIN SCRIPT ###########################################################
 username = input("\nInsert the username you chose on the server registration:\n")
-
+        
 if user_is_registred(username) == False:
     registration(username)
     proceed = input("Do you want to proceed with login? [y|n]\n")
@@ -251,7 +260,7 @@ except:
 
 #TODO Por dentro d euma função para desparguetar
 
-print('> Second key - ' + keyToDecrypt)
+print('(2 KEY TO DECRYPT > ' + keyToDecrypt + ")")
 
 try:
     pyAesCrypt.decryptFile(".env.aes", ".env", keyToDecrypt)
@@ -279,6 +288,4 @@ my_ip_port = str(ip_port_tuple[0]) + ":" + str(ip_port_tuple[1])
 print("> client session address: " + my_ip_port)
 request_set_ip(username, my_ip_port)
 main_menu(username, my_ip_port)
-request_service(username)
-
     

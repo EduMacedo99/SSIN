@@ -35,17 +35,17 @@ app.post('/get_token', function (req, res) {
     const enc_key = req.body.encrypt_key;
     const username = req.body.username;
  
-    console.log("ID: " + enc_ID);
-    console.log("iv: " + enc_iv)
-    console.log("key: " + enc_key)
+    // console.log("ID: " + enc_ID);
+    // console.log("iv: " + enc_iv)
+    // console.log("key: " + enc_key)
     
     const onetimeID = assymetric_decrypt(enc_ID);
     const iv = assymetric_decrypt(enc_iv);
     const symmetric_key = assymetric_decrypt(enc_key);
-    console.log("ID: " + onetimeID);
-    console.log("username: " + username);
-    console.log("key: " + symmetric_key);
-    console.log("iv: " + iv);
+    // console.log("ID: " + onetimeID);
+    // console.log("username: " + username);
+    // console.log("key: " + symmetric_key);
+    // console.log("iv: " + iv);
     // TODO: confirmar na BD que cliente onetimeID é correto
     const sql_confirm_ID = "SELECT one_time_id FROM users WHERE username=?"
     DB.db.get(sql_confirm_ID, [username], (err, row) => {

@@ -28,7 +28,7 @@ function getClient(res, username, callback){
 app.get("/", function (req, res) {
     const { msg, username, cl_token, new_iv} = req.body
     console.log("Start of authentication ...")
-    console.log("... client<        ?         >: " + msg)
+    console.log("... client< ? >: " + msg)
 
     // Check if username and token matches DB
     getClient(res, username, (client) => {
