@@ -10,7 +10,6 @@ def create_table(conn=sqlite3.connect('database/Database.db')):
     conn.execute('''
                  CREATE TABLE USERS (
                      username CHAR[8] NOT NULL PRIMARY KEY, 
-                     password_hash TEXT,
                      security_level INT CHECK(3 >= security_level >= 1),
                      one_time_id TEXT,
                      ip_address TEXT,
@@ -26,7 +25,6 @@ def create_table(conn=sqlite3.connect('database/Database.db')):
 def new_user(username, password, security_level, one_time_id, connection=sqlite3.connect('database/Database.db')):
     conn.execute('INSERT INTO users VALUES ("'
                  + username + '", "'
-                 + sha256(bytes(password, "ascii")).hexdigest() + '", "'
                  + security_level + '", "'
                  + sha256(bytes(one_time_id, "ascii")).hexdigest() +
                  '", null, null, null, null, null, null);')

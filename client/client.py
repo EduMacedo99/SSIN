@@ -169,7 +169,7 @@ def main_menu():
     else:
         print("Invalid option\n")
         main_menu()
-
+main_menu()
 
 def decrypt_and_read_dotenv():
     counter = 0

@@ -1,4 +1,5 @@
 const fs = require('fs');
+var sha256 = require('js-sha256');
 const forge = require('node-forge');
 const express = require('express');
 const Crypto = require('crypto');
@@ -60,7 +61,9 @@ app.post('/get_token', function (req, res) {
             return;
         }
         else {
-            if (row.one_time_id != onetimeID) {
+
+            let onetimeIdHash = sha256(onetimeID)
+            if (row.one_time_id != onetimeIdHash) {
                 res.statusCode = 401;
                 res.json({
                     'message': 'Wrong one_time _ID',
