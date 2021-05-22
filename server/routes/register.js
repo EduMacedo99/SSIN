@@ -5,7 +5,7 @@ const express = require('express');
 const Crypto = require('crypto');
 const DB = require('../DBconnect');
 let app = express.Router()
-
+const utils = require("../utils")
 const buffertrim = require('buffertrim') 
 const symmetric = require('../symmetric_encryption')
 
@@ -46,7 +46,8 @@ app.post('/get_token', function (req, res) {
     // console.log("username: " + username);
     // console.log("key: " + symmetric_key);
     // console.log("iv: " + iv);
-    // TODO: confirmar na BD que cliente onetimeID é correto
+    console.log("... checking if username and one time id macthes DB.")
+
     const sql_confirm_ID = "SELECT one_time_id FROM users WHERE username=?"
     DB.db.get(sql_confirm_ID, [username], (err, row) => {
         if (err) {
@@ -63,7 +64,7 @@ app.post('/get_token', function (req, res) {
         else {
 
             let onetimeIdHash = sha256(onetimeID)
-            console.log("SQL > " + row.one_time_id + '\n > Client > ' + sha256(onetimeID))
+            //console.log("SQL > " + row.one_time_id + '\n > Client > ' + sha256(onetimeID))
             if (row.one_time_id != onetimeIdHash) {
                 res.statusCode = 401;
                 res.json({
@@ -72,20 +73,22 @@ app.post('/get_token', function (req, res) {
                 return;
             }
             else {
+                console.log("... valid username and one time id.")
+
                 //criar um token
                 const token = Crypto.randomBytes(12).toString('base64').slice(0, 12);
-                console.log("token: " + token)
+                console.log("... token: " + token)
                 //**************************************************************************** */
                
                 //TODO -> criar um novo iv e enviá-lo juntamente com o enc_token
                 const enc_token = symmetric.encrypt(token, iv, symmetric_key);
-                console.log("enc_token: " + enc_token);
+                //console.log("... enc_token: " + enc_token);
                 res.statusCode = 200;
                 res.json({
                     'token': enc_token,
                 });
                 console.log("... saving new token and symmetric key in DB")
-                DB.saveClientRegistration(username, token, symmetric_key);
+                utils.saveClientRegistration(username, token, symmetric_key);
                 console.log("Registration done.\n")
             }  
         };

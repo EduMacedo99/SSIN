@@ -2,6 +2,7 @@ const express = require('express')
 const DBconnect = require('../DBconnect.js').db
 let app = express.Router()
 const symmetric = require("../symmetric_encryption")
+const utils = require("../utils")
 
 /**
  * Check if username and token are valid
@@ -12,6 +13,8 @@ const symmetric = require("../symmetric_encryption")
  */
 function checkSecurityLevel(req, res, callback) {
   const { username, cl_token, new_iv, service_data} = req.body
+
+  console.log("... checking if username and token macthes DB.")
 
   var sql = `SELECT * FROM users WHERE username = "`+ username +'"'
   DBconnect.get(sql, (err, row) => {
@@ -29,19 +32,23 @@ function checkSecurityLevel(req, res, callback) {
       res.status(500).json({"msg":"Token do not macth this username."})
       return
     }
+    console.log("... valid username and token.")
 
     // Check security level
     if (parseInt(service_data.service_id) <= security_level) {
-      console.log("security level is ok")
+      console.log("... security level is ok, service level " + service_data.service_id + " and client level " + security_level + ".")
       callback()
     }
     else {
-      console.log("This user doesnt have permission to this service")
+      console.log("This user doesnt have permission to this service.\n")
       res.status(500).json({"msg":"You don't have permission to this service"})
     }
   })
 }
 
+/**
+ * Calculate value
+ */
 function serviceResponse (req, res) {
   const { service_id, radicand, index } = req.body.service_data
   var value
@@ -57,32 +64,48 @@ function serviceResponse (req, res) {
       value = Math.pow(radicand_float, 1 / parseFloat(index))
       break
   }
+  console.log("Service done. Value = " + value + "\n")
   res.status(200).json({"msg":"value = " + value})
 }
 
-
+/**
+ * Check if username and token are valid
+ * Update IP address of the client in the DB
+ * 
+ * TODO: Evitar SQL Injection
+ */
 app.post('/set_ip', async function (req, res){
-  // TODO: Evitar SQL Injection
-  var sql_set_ip = "UPDATE users SET ip_address=?"
-  DBconnect.run(sql_set_ip, [req.query.ip_address], async function (err, row) {
-      if (err) {
-        return console.error(err.message)
-      }
-      if (this.changes == 0){
-        console.log(`User ${req.query.username} not found`)
-        console.log("No rows to update")
-        res.sendStatus(500)
-      }
-      else if (this.changes > 0) {
-        console.log(`Row(s) updated: ${this.changes}`)
-        console.log(req.query.username + " ip set to " + req.query.ip_address)
-        res.sendStatus(201)
-      }
+  console.log("Set ip ...")
+
+  const {username, ip_address} = req.body
+
+  utils.getClient(res, req.body, () => {
+
+    var sql_set_ip = "UPDATE users SET ip_address=?"
+    DBconnect.run(sql_set_ip, [ip_address], async function (err, row) {
+        if (err) {
+          res.status(500).json({"msg":err.message})
+          return console.error(err.message)
+        }
+        if (this.changes == 0){
+          console.log("No rows to update.")
+          console.log("Set ip failed. User " + username + " not found.")
+          res.status(500).json({"msg":"User " + username + " not found. No rows to update"})
+        }
+        else if (this.changes > 0) {
+          console.log(`... Row(s) updated: ${this.changes}`)
+          console.log(username + " ip set to " + ip_address + "\n")
+          res.status(201).json({"msg": username + " ip set to " + ip_address})
+        }
+      })
     })
+
   })
 
+/**
+ * TODO: Evitar SQL Injection
+ */
 app.post('/get_ip', function(req, res){
-  // TODO: Evitar SQL Injection
   var sql_get_ip = "SELECT ip_address FROM users WHERE username=?"
   DBconnect.get(sql_get_ip, [req.query.username], (err, row) => {
     if (err) {
@@ -98,6 +121,8 @@ app.post('/get_ip', function(req, res){
 })
 
 app.get('/', function (req, res) {
+  console.log("Start service ...")
+
     checkSecurityLevel(req, res, () => {
       serviceResponse(req, res)
     })

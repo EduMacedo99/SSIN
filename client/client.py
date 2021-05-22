@@ -140,7 +140,7 @@ def server_reg(username, one_time_ID):
         return saveEnv
 
 
-def main_menu(username, my_port):
+def main_menu(username, my_port, config):
     print("Options:")
     print("1 - Request service")
     print("2 - Send message")
@@ -149,8 +149,8 @@ def main_menu(username, my_port):
     option = int(input("option: "))
     if option == 1:
         print("")
-        dotenv_config = decrypt_and_read_dotenv()
-        request_service(dotenv_config)
+        request_service(config)
+        
     elif option == 2:
         username = input("Which client do you want to contact?\n")
         try:
@@ -160,10 +160,9 @@ def main_menu(username, my_port):
             connect_socket(port)
         except ExceptionUserNotAvailable:
             print("This client is not available at the moment\n")
-            main_menu()
         except ExceptionUserNotFound:
             print("This username does not exist in the server database\n")
-            main_menu()
+            
     elif option == 3:
         #username = dotenv_values(".env")["USERNAME"]
         #my_port = random.randint(1024, 49151)
@@ -174,10 +173,10 @@ def main_menu(username, my_port):
         return
     else:
         print("Invalid option\n")
-        main_menu(username, my_port)
+        main_menu(username, my_port, config)
      
     print("\n")
-    main_menu(username, my_ip_port)
+    main_menu(username, my_ip_port, config)
 
 def decrypt_and_read_dotenv():
     global keyToDecrypt
@@ -286,6 +285,8 @@ my_ip_port = str(ip_port_tuple[0]) + ":" + str(ip_port_tuple[1])
 
 # Services
 print("> client session address: " + my_ip_port)
-request_set_ip(username, my_ip_port)
-main_menu(username, my_ip_port)
+# TODO: Como andar de um lado para o outro sem estar sempre a pedir password?
+# agora está a dar o new_config que veio na autenticação
+request_set_ip(new_config, my_ip_port)
+main_menu(username, my_ip_port, new_config)
     

@@ -3,16 +3,25 @@ import symmetric_encryption
 
 from utils import *
 
+# Return json data with username, cl_token and new_iv
+def prepare_request(config):
+    
+    username = config["USERNAME"]
+    curr_token = config["TOKEN"]
+    symmetric_key = config["KEY"]
+    
+    # Encrypt token
+    symmetric_key_iv = symmetric_encryption.create_new_iv(SIZE)
+    enc_token = symmetric_encryption.encrypt(curr_token, symmetric_key_iv.encode(), symmetric_key.encode())
+    
+    return {"username": username, "cl_token":enc_token, "new_iv": symmetric_key_iv}
+
 
 def request_service(config):  
     print("> Choose the desired service:")
     print("     1 - Square root")
     print("     2 - Cubic root")
     print("     3 - Parametrized n-root")
-    
-    username = config["USERNAME"]
-    curr_token = config["TOKEN"]
-    symmetric_key = config["KEY"]
     
     service_id = int(input("Service: "))
     radicand = input("Choose the radicand: ")
@@ -25,36 +34,38 @@ def request_service(config):
         print("Invalid option:", service_id)
         return
        
-    # Encrypt token
-    symmetric_key_iv = symmetric_encryption.create_new_iv(SIZE)
-    enc_token = symmetric_encryption.encrypt(curr_token, symmetric_key_iv.encode(), symmetric_key.encode())
+    data = prepare_request(config)
+    data["msg"] = "Client choose service " + str(service_id) + ".",
+    data["service_data"] = service_data
         
     # Request service
     res = requests.get(SERVER_ADDRESS + "/service", 
-        json={
-            "msg":"Client choose service " + str(service_id) + ".",
-            "username": username,
-            "cl_token": enc_token,
-            "new_iv": symmetric_key_iv,
-            "service_data": service_data
-        } 
+        json = data 
     )
     res_content = res.json()
     print("> Server: " + res_content["msg"])
     
-    # If server sended answer
+    # If server response was ok
     if res.ok: 
         print("> Service done with success.")
 
 
-def request_set_ip(username, ip):
-    if username == None:
-        raise ExceptionNoUsernameFound
-    data = {"username":username, "ip_address":ip}
+def request_set_ip(config, ip):
     
-    token = requests.post(
-        SERVER_ADDRESS + "/service/set_ip", params=data)
-    #print(token.text)
+    data = prepare_request(config)
+    data["msg"] = "Client want to set a new ip " + ip
+    data["ip_address"] = ip
+    
+    # Request to set ip
+    res = requests.post(SERVER_ADDRESS + "/service/set_ip",
+        json = data 
+    )
+    res_content = res.json()
+    print("> Server: " + res_content["msg"])
+    
+    # If server response was ok
+    if res.ok: 
+        print("> Set IP done with success.\n")
 
 
 def request_get_ip(username):
@@ -69,9 +80,3 @@ def request_get_ip(username):
         raise ExceptionUserNotFound
     else:
         return token.text.split(" ")[-1]
-
-
-# if __name__=='__main__':
-#     request_service("Pedro")
-#     request_set_ip("Pedro", "127.0.0.1:1000")
-#     request_get_ip("Pedro")
