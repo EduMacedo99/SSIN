@@ -85,9 +85,10 @@ def registration(username):
 
     else:
         print('> Error: Something went wrong')
+        exit(-1)
 
 
-def server_reg(username, one_time_id):
+def server_reg(username, one_time_ID):
     
     print('> Start Registration.')
     
@@ -105,31 +106,37 @@ def server_reg(username, one_time_id):
     key = RSA.importKey(open(SERVER_KEY_PATH).read())
     cipher = PKCS1_OAEP.new(key)
 
-    one_time_id_encrypt = base64.b64encode(
-        cipher.encrypt(one_time_id.encode("utf-8")))
+    one_time_ID_encrypt = base64.b64encode(
+        cipher.encrypt(one_time_ID.encode("utf-8")))
     encrypt_key = base64.b64encode(
         cipher.encrypt(symmetric_key.encode("utf-8")))
     encrypt_iv = base64.b64encode(cipher.encrypt(iv.encode('utf-8')))
     token_encrypt = requests.post(
         SERVER_URL + "register/get_token",
         json={
-            "ID_encrypt": one_time_id_encrypt.decode(),
+            "ID_encrypt": one_time_ID_encrypt.decode(),
             "encrypt_key": encrypt_key.decode(),
             "encrypt_iv": encrypt_iv.decode(),
             "username": username
-        }, 
-    ).json()
-    # print("encrypted token: " + token_encrypt["token"])
-    decrypted_token = symmetric_encryption.decrypt(
-        token_encrypt["token"], iv.encode(), symmetric_key.encode())
-    # print("decryptedtoken: " + decrypted_token)
-
-    saveEnv.append(symmetric_key)
-    saveEnv.append(decrypted_token)
-    
-    print("> Server Registration was successfull!\n")
-
-    return saveEnv
+        },
+    )
+    print(token_encrypt.status_code)
+    if token_encrypt.status_code == 404:
+        print('Wrong username')
+        return saveEnv
+    elif token_encrypt.status_code == 401:
+        print('Wrong oneTimeID')
+        return saveEnv
+    else:
+        token_encrypt = token_encrypt.json()
+        print("encrypted token: " + token_encrypt["token"])
+        decrypted_token = symmetric_encryption.decrypt(
+            token_encrypt["token"], iv.encode(), symmetric_key.encode())
+        print("decryptedtoken: " + decrypted_token)
+        print("> Server Registration was successfull!\n")
+        saveEnv.append(symmetric_key)
+        saveEnv.append(decrypted_token)
+        return saveEnv
 
 
 def main_menu():
@@ -232,7 +239,8 @@ try:
     (new_config, ip_port_tuple) = authentication()
 except:
     print("> Something went wrong.")
-    exit()
+    #TODO close program
+    exit(-1)
     
 # TODO: Save in the env the new config
 # if not, the second login will not work
