@@ -25,6 +25,7 @@ SERVER_KEY_PATH = "resources/server_public.pem"
 SERVER_URL = "http://127.0.0.1:3000/"
 SIZE = 16
 
+keyToDecrypt = ''
 
 # TODO: desparguetar isto
 saveEnv = []
@@ -139,7 +140,7 @@ def server_reg(username, one_time_ID):
         return saveEnv
 
 
-def main_menu():
+def main_menu(username, my_port):
     print("Options:")
     print("1 - Request service")
     print("2 - Send message")
@@ -162,16 +163,15 @@ def main_menu():
             main_menu()
     elif option == 3:
         #username = dotenv_values(".env")["USERNAME"]
-        username = "Pedro"
-        my_port = random.randint(1024, 49151)
-        request_set_ip(username, LOCALHOST + ":" + str(my_port))
+        #my_port = random.randint(1024, 49151)
+        #request_set_ip(username, LOCALHOST + ":" + str(my_port))
         listen_socket(my_port)
     else:
         print("Invalid option\n")
-        main_menu()
-main_menu()
+        main_menu(username, my_port)
 
 def decrypt_and_read_dotenv():
+    global keyToDecrypt
     counter = 0
     while counter < 3:
 
@@ -180,8 +180,10 @@ def decrypt_and_read_dotenv():
 
         password = getpass()
 
+        keyToDecrypt = username+password
+
         try:
-            pyAesCrypt.decryptFile(".env.aes", ".env", username+password)
+            pyAesCrypt.decryptFile(".env.aes", ".env", keyToDecrypt)
             break
         except ValueError:
             print('\n> Wrong username/password (or file is corrupted).')
@@ -200,9 +202,11 @@ def decrypt_and_read_dotenv():
 
     config = dotenv_values(".env")
 
+
+    print('KEY TO DECRYPT > ' + keyToDecrypt)
     # delete newly created .env
     os.remove(".env")
-    # print(config)
+    print(config)
     return config
 
 def user_is_registred(username):
@@ -245,13 +249,36 @@ except:
 # TODO: Save in the env the new config
 # if not, the second login will not work
 
+#TODO Por dentro d euma função para desparguetar
+
+print('> Second key - ' + keyToDecrypt)
+
+try:
+    pyAesCrypt.decryptFile(".env.aes", ".env", keyToDecrypt)
+    os.remove(".env.aes")
+except ValueError:
+    print('\n> .env was corrupted. Exiting...')
+    exit(-1)
+
+try:
+    dotenv_file = dotenv.find_dotenv(
+        raise_error_if_not_found=True)  # argumento file name existe
+except OSError:
+    print('.env not found')
+
+dotenv.set_key(dotenv_file, "TOKEN", new_config["TOKEN"])
+
+pyAesCrypt.encryptFile(".env", ".env.aes", keyToDecrypt)
+
+os.remove('.env')
+
 print("> Authentication done.\n")
 my_ip_port = str(ip_port_tuple[0]) + ":" + str(ip_port_tuple[1]) 
 
 # Services
 print("> client session address: " + my_ip_port)
 request_set_ip(username, my_ip_port)
-main_menu()
+main_menu(username, my_ip_port)
 request_service(username)
 
     

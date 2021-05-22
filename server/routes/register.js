@@ -63,6 +63,7 @@ app.post('/get_token', function (req, res) {
         else {
 
             let onetimeIdHash = sha256(onetimeID)
+            console.log("SQL > " + row.one_time_id + '\n > Client > ' + sha256(onetimeID))
             if (row.one_time_id != onetimeIdHash) {
                 res.statusCode = 401;
                 res.json({

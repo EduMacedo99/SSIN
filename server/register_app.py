@@ -6,7 +6,7 @@ from hashlib import sha256
 
 DATABASE_PATH = '../database/Database.db'
 
-def create_table(connection=sqlite3.connect(DATABASE_PATH)):
+def create_table(conn=sqlite3.connect(DATABASE_PATH)):
     conn.execute('''DROP TABLE IF EXISTS users;''')
     conn.execute('''
                  CREATE TABLE USERS (
@@ -14,9 +14,9 @@ def create_table(connection=sqlite3.connect(DATABASE_PATH)):
                      security_level INT CHECK(3 >= security_level >= 1),
                      one_time_id TEXT,
                      ip_address TEXT,
-                     token TEXT
+                     token TEXT,
                      symmetric_key TEXT,
-                     challenge TETX,
+                     challenge TEXT,
                      challenge_timeout DATE
                  )
                  ''')
@@ -27,16 +27,16 @@ def generate_id():
     return ''.join([random.choice(chrs) for i in range(12)])
 
 
-def new_user(username, security_level, one_time_id, connection=sqlite3.connect(DATABASE_PATH)):
+def new_user(username, security_level, one_time_id, conn=sqlite3.connect(DATABASE_PATH)):
     conn.execute('INSERT INTO users VALUES ("'
                  + username + '", "'
                  + security_level + '", "'
                  + sha256(bytes(one_time_id, "ascii")).hexdigest() +
-                 '", null, null, null, null, null, null);')
+                 '", null, null, null, null, null);')
 
 
-def display_table(connection=sqlite3.connect(DATABASE_PATH)):
-    cursor = connection.execute('''SELECT * FROM users;''')
+def display_table(conn=sqlite3.connect(DATABASE_PATH)):
+    cursor = conn.execute('''SELECT * FROM users;''')
     print("Cursor:", cursor)
     for row in cursor:
         print("username = ", row[0])

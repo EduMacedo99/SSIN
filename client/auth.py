@@ -59,7 +59,7 @@ def authentication_server(config, server_ip_url, size):
             # Decrypt token
             curr_token = symmetric_encryption.decrypt(res_content["token"], symmetric_key_iv.encode(), symmetric_key.encode())
             
-            config["token"] = curr_token;
+            config["TOKEN"] = curr_token;
             print("> Refresh token done: " + curr_token)
             
             return (config, ip_port)
