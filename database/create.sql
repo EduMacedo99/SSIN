@@ -14,3 +14,4 @@ CREATE TABLE users (username CHAR[8] NOT NULL PRIMARY KEY,
             );
 
 INSERT INTO users VALUES ("Pedro", "this_should_be_a_hash", 3, "another_hash", "127.0.0.1:3000", null, null, null, null, null, null);
+INSERT INTO users VALUES ("Raul", "123", 3, "111", "127.0.0.1:3000", null, null, null, null, null, null);

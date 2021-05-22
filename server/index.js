@@ -1,9 +1,8 @@
 const express = require("express");
 
-
 const auth = require('./routes/auth')
 const service = require('./routes/service');
-const register = require('./routes/register.js');
+const register = require('./routes/register');
 const coms = require('./routes/coms');
 
 const app = express();

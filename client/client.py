@@ -21,8 +21,9 @@ from Crypto.PublicKey import RSA
 from utils import *
 
 
-#desparguetar isto
+# desparguetar isto
 saveEnv = []
+
 
 def registration():
     counter_pw = 0
@@ -30,7 +31,7 @@ def registration():
         'Insert the username you chose on the server registration:\n')
     ID = input('Insert the unique ID you were given in the server registration:\n')
 
-    serverInfo = serverReg(ID)
+    serverInfo = serverReg(ID, username)
 
     if len(serverInfo) > 0:
 
@@ -84,9 +85,8 @@ def registration():
         print('Something went wrong')
 
 
-def serverReg(one_time_ID):
-    print(type(one_time_ID))
-    print(one_time_ID)
+def serverReg(one_time_ID, username):
+
     SERVER_KEY_PATH = "resources/server_public.pem"
     SERVER_URL = "http://127.0.0.1:3000/"
 
@@ -98,8 +98,9 @@ def serverReg(one_time_ID):
 
     # First-Registration -> get server public key
     # get server public key
-    response = requests.get("http://127.0.0.1:3000/register")
-    open('SERVER_KEY_PATH', 'wb').write(response.content)
+    response = requests.get(SERVER_URL + "register")
+    print(response.content)
+    open(SERVER_KEY_PATH, 'wb').write(response.content)
 
     # encrypt one_time_ID, symmetric_key and iv with server public  key
     key = RSA.importKey(open(SERVER_KEY_PATH).read())
@@ -107,6 +108,8 @@ def serverReg(one_time_ID):
 
     one_time_ID_encrypt = base64.b64encode(
         cipher.encrypt(one_time_ID.encode("utf-8")))
+    username_encrypt = base64.b64encode(
+        cipher.encrypt(username.encode("utf-8")))
     encrypt_key = base64.b64encode(
         cipher.encrypt(symmetric_key.encode("utf-8")))
     encrypt_iv = base64.b64encode(cipher.encrypt(iv.encode('utf-8')))
@@ -114,20 +117,30 @@ def serverReg(one_time_ID):
         SERVER_URL + "register/get_token",
         json={
             "ID_encrypt": one_time_ID_encrypt.decode(),
+            "username_encrypt": username_encrypt,
             "encrypt_key": encrypt_key.decode(),
             "encrypt_iv": encrypt_iv.decode(),
-        }, 
-    ).json()
-    print("encrypted token: " + token_encrypt["token"])
-    decrypted_token = symmetric_encryption.decrypt(
-        token_encrypt["token"], iv.encode(), symmetric_key.encode())
-    print("decryptedtoken: " + decrypted_token)
-    print('server registration done')
+        },
+    )
+    print(token_encrypt.status_code)
+    if token_encrypt.status_code == 404:
+        print('Wrong username')
+        return saveEnv
+    elif token_encrypt.status_code == 401:
+        print('Wrong oneTimeID')
+        return saveEnv
+    else:
+        token_encrypt = token_encrypt.json()
+        print("encrypted token: " + token_encrypt["token"])
+        decrypted_token = symmetric_encryption.decrypt(
+            token_encrypt["token"], iv.encode(), symmetric_key.encode())
+        print("decryptedtoken: " + decrypted_token)
+        print('server registration done')
 
-    saveEnv.append(symmetric_key)
-    saveEnv.append(decrypted_token)
+        saveEnv.append(symmetric_key)
+        saveEnv.append(decrypted_token)
 
-    return saveEnv
+        return saveEnv
 
 
 def main_menu():
@@ -162,7 +175,7 @@ def main_menu():
         main_menu()
 
 
-#main_menu()
+# main_menu()
 
 def decrypt_and_read_dotenv():
     counter = 0
@@ -204,16 +217,16 @@ def decrypt_and_read_dotenv():
 
 # ver se .env.aes existe - se não existir é pq nao houve registo
 if path.exists(".env.aes"):
-    
+
     print('> Already Registered\n> Proceeding with authentication')
-    
+
     dotenv_config = decrypt_and_read_dotenv()
     username = dotenv_config["USERNAME"]
-    
-    ## Authenticate with the server and start a new session
-    #authenticationServer(dotenv_config)
-    
-    ## Services 
+
+    # Authenticate with the server and start a new session
+    # authenticationServer(dotenv_config)
+
+    # Services
     my_port = random.randint(1024, 49151)
     request_set_ip(username, LOCALHOST + ":" + str(my_port))
     main_menu()
