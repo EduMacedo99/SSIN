@@ -1,8 +1,5 @@
 const express = require('express');
-//const sqlite3 = require('sqlite3').verbose();
-//const Math = require('Math');
 const DBconnect = require('../DBconnect.js').db;
-//const DBtest = require('../databaseTest.js');
 let app = express.Router()
 
 function checkSecurityLevel(req, res, callback) {

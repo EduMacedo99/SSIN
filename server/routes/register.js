@@ -6,37 +6,31 @@ let app = express.Router()
 
 const buffertrim = require('buffertrim') 
 const symmetric = require('../symmetric_encryption')
+const DB = require("../DBconnect.js")
 
-/**
-* Save token and symmetric key in DB
-*/
-function saveClientRegistration (username, token, symmetric_key) {
-    // Update DB
-    const sql = "UPDATE users SET token=?, symmetric_key=? WHERE username=?"
-    db.run(sql, [token, symmetric_key, username], (err, row) => {
-        if (err) 
-            return console.error(err.message)
-        if (row) 
-            console.log("Updated DB client: ", row)
-    });
-}
 
 app.get('/', function (req, res) {
-    console.log(req.body);
+    //console.log(req.body);
     res.download('../server/public.pem');
 });
 
 app.post('/get_token', function (req, res) {
+
+    console.log("\nStart of Registration ...")
+
     const enc_ID = req.body.ID_encrypt;
     const enc_iv = req.body.encrypt_iv;
     const enc_key = req.body.encrypt_key;
+    const username = req.body.username;
  
-    console.log("ID: " + enc_ID);
-    console.log("iv: " + enc_iv)
-    console.log("key: " + enc_key)
+    //console.log("ID: " + enc_ID);
+    //console.log("iv: " + enc_iv)
+    //console.log("key: " + enc_key)
 
     const pem = fs.readFileSync('../server/private.pem', 'utf8');
     const privateKey = forge.pki.decryptRsaPrivateKey(pem, '2210');
+
+    console.log("... decrypting request")
     
     const onetimeID = privateKey.decrypt(forge.util.decode64(enc_ID), 'RSA-OAEP', {
         md: forge.md.sha1.create(),
@@ -56,23 +50,29 @@ app.post('/get_token', function (req, res) {
             md: forge.md.sha1.create()
         }
     });
-    console.log("ID: " + onetimeID);
-    console.log("key: " + symmetric_key);
-    console.log("iv: " + iv);
-    // TODO: confirmar na BD que cliente onetimeID é correto
+    //console.log("ID: " + onetimeID);
+    //console.log("key: " + symmetric_key);
+    //console.log("iv: " + iv);
+
+    // TODO: confirmar na BD que o cliente onetimeID é correto
+    // na bd está com um hash de sha256
+    console.log("... verifying if one time ID and username are valid")
+
     //criar um token
     const token = Crypto.randomBytes(12).toString('base64').slice(0, 12);
-    console.log("token: " + token)
-    //**************************************************************************** */
-    
-    // Save token and symmetric key in DB
-    saveClientRegistration(username, token, symmetric_key);
-    
+    console.log("... new token: " + token)
+
     const enc_token = symmetric.encrypt(token, iv, symmetric_key);
-    console.log("enc_token: " + enc_token);
+    //console.log("enc_token: " + enc_token);
     res.json({
         'token': enc_token,
     });
+
+    // TODO: se encriptarmos o token, como depois podemos verificá-lo sem o mesmo iv?
+    // Save token and symmetric key in DB
+    console.log("... saving new token and symmetric key in DB")
+    DB.saveClientRegistration(username, token, symmetric_key);
+    console.log("Registration done.\n")
 
 });
 

@@ -26,13 +26,8 @@
 
 
 # NOTES:
-1 - Segundo o pdf é o server que gera o username, e não o cliente, o cliente apenas lhe dá o nome dele ou assim:
+TODO: 1 - Segundo o pdf é o server que gera o username, e não o cliente, o cliente apenas lhe dá o nome dele ou assim:
 
 "At the same time, a username (string with a maximum of 8 characters) and a one-time ID (a random string with 12 characters, comprised of small and capital letters and digits) is generated and communicated to the collaborator"
 
-
-
-
-rita
-2
-wB5OWfkuqSVd 
+TODO: 2 - Encriptar mensagens nos serviços

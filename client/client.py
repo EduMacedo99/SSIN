@@ -23,42 +23,39 @@ from utils import *
 
 SERVER_KEY_PATH = "resources/server_public.pem"
 SERVER_URL = "http://127.0.0.1:3000/"
+SIZE = 16
 
 
 # TODO: desparguetar isto
 saveEnv = []
 
-def registration():
+def registration(username):
     
     print("\n> Start Registration.\n")
     
     counter_pw = 0
-    username = input(
-        'Insert the username you chose on the server registration:\n')
     ID = input('Insert the unique ID you were given in the server registration:\n')
 
-    server_info = server_reg(ID)
+    server_info = server_reg(username, ID)
 
     if len(server_info) > 0:
-
-        print('\n> Server Registration was successfull!')
 
         # polos a escolher uma password
         while counter_pw < 3:
             # Ask for strong password
-            print('Insert your a new password for this device. The password should at least:\n\t- Have 8 characters or more\n\t- Include Uppercase letters\n\t- Include numbers')
+            print('> Insert your a new password for this device. The password should at least:\n\t- Have 8 characters or more\n\t- Include Uppercase letters\n\t- Include numbers')
             save_pw = getpass()
 
             rexes = ('[A-Z]', '[a-z]', '[0-9]')
 
             if len(save_pw) >= 8 and all(re.search(r, save_pw) for r in rexes):
-                print('Strong password. Trying to register...')
+                print('\n> Strong password.')
                 break
             else:
-                print('Password not strong enough... Try again')
+                print('\n> Password not strong enough... Try again')
                 counter_pw += 1
                 if counter_pw >= 3:
-                    print("Maximum tries exceeded. Exiting...")
+                    print("> Maximum tries exceeded. Exiting...")
                     exit()
 
         # criar ficheiro .env, por a info, encriptalon e apagá-lo
@@ -87,30 +84,24 @@ def registration():
         os.remove(".env")
 
     else:
-        # dizer que username/id estão mal e tentar outra vez
-        print('Something went wrong')
+        print('> Error: Something went wrong')
 
 
-def server_reg(one_time_id):
+def server_reg(username, one_time_id):
     
-    # TODO: Verify one_time_id and username
-    # na bd está com um hash de sha256
-    
-    print('\n> Valid pair of username, ID.')
-    print('> Start First-Registration.')
+    print('> Start Registration.')
     
     # prepare encryption variables
-    size = 16
-    iv =  symmetric_encryption.create_new_iv(size)
+    iv =  symmetric_encryption.create_new_iv(SIZE)
     symmetric_key = ''.join(random.choice(string.ascii_lowercase)
-                            for x in range(size))
+                            for x in range(SIZE))
 
     # First-Registration -> get server public key
     # get server public key
     response = requests.get(SERVER_URL + "register")
     open('SERVER_KEY_PATH', 'wb').write(response.content)
 
-    # encrypt one_time_id, symmetric_key and iv with server public  key
+    # encrypt one_time_id, symmetric_key and iv with serverd public  key
     key = RSA.importKey(open(SERVER_KEY_PATH).read())
     cipher = PKCS1_OAEP.new(key)
 
@@ -125,16 +116,18 @@ def server_reg(one_time_id):
             "ID_encrypt": one_time_id_encrypt.decode(),
             "encrypt_key": encrypt_key.decode(),
             "encrypt_iv": encrypt_iv.decode(),
+            "username": username
         }, 
     ).json()
-    print("encrypted token: " + token_encrypt["token"])
+    # print("encrypted token: " + token_encrypt["token"])
     decrypted_token = symmetric_encryption.decrypt(
         token_encrypt["token"], iv.encode(), symmetric_key.encode())
-    print("decryptedtoken: " + decrypted_token)
-    print('server registration done')
+    # print("decryptedtoken: " + decrypted_token)
 
     saveEnv.append(symmetric_key)
     saveEnv.append(decrypted_token)
+    
+    print("> Server Registration was successfull!\n")
 
     return saveEnv
 
@@ -171,8 +164,6 @@ def main_menu():
         main_menu()
 
 
-#main_menu()
-
 def decrypt_and_read_dotenv():
     counter = 0
     while counter < 3:
@@ -186,10 +177,10 @@ def decrypt_and_read_dotenv():
             pyAesCrypt.decryptFile(".env.aes", ".env", username+password)
             break
         except ValueError:
-            print('Wrong username/password (or file is corrupted).')
+            print('\n> Wrong username/password (or file is corrupted).')
             counter += 1
             if counter >= 3:
-                print('Number of tries exceeded. Terminating program...')
+                print('> Number of tries exceeded. Terminating program...')
                 exit()
 
     # get info
@@ -204,36 +195,55 @@ def decrypt_and_read_dotenv():
 
     # delete newly created .env
     os.remove(".env")
-    print(config)
+    # print(config)
     return config
 
+def user_is_registred(username):
+    # ver se .env.aes existe - se não existir é pq nao houve registo
+    # TODO: criar folders para cada cliente ou qq coisa, assim depois de 1 cliente estar registrado, o proximo vai dar true mesmo n estando
+    return path.exists(".env.aes")
 
-########################################################### MAIN SCRIPT ###########################################################
-
-# TODO: criar folders para cada cliente ou qq coisa, assim depois de 1 cliente estar registrado, o proximo vai dar true mesmo n estando
-# ver se .env.aes existe - se não existir é pq nao houve registo
-if path.exists(".env.aes"):
-    
-    print('> Already Registered.\n> Proceeding with authentication.')
-    
-    ## Identifying and authenticating the collaborator locally
+def authentication():
+    # Identifying the collaborator locally
     dotenv_config = decrypt_and_read_dotenv()
     
     if (len(dotenv_config) < 2):
         print("> Error: Authentication failed locally.")
         exit()
       
-    ## Authenticate with the server and start a new session
+    # Authenticate with the server and start a new session
     # return ip_port of current session for the client
-    my_ip_port = auth.authentication_server(dotenv_config, SERVER_URL) 
+    return auth.authentication_server(dotenv_config, SERVER_URL, SIZE) 
+
+########################################################### MAIN SCRIPT ###########################################################
+username = input("\nInsert the username you chose on the server registration:\n")
+
+if user_is_registred(username) == False:
+    registration(username)
+    proceed = input("Do you want to proceed with login? [y|n]\n")
+    if proceed == "n":
+        print('> Exiting...\n')
+        exit()     
+else:    
+    print('\n> Already Registered.')
     
-    ## Services 
-    username = dotenv_config["USERNAME"]
-    request_set_ip(username, my_ip_port) # my_ip_port is a tuple :)
-    main_menu()
-    request_service(username)
-else:
-    #try:
-        registration()
-    #except:
-        #print("\n> Error: Registration failed.")
+print('> Proceeding with authentication.\n')  
+try:
+    (new_config, ip_port_tuple) = authentication()
+except:
+    print("> Something went wrong.")
+    exit()
+    
+# TODO: Save in the env the new config
+# if not, the second login will not work
+
+print("> Authentication done.\n")
+my_ip_port = str(ip_port_tuple[0]) + ":" + str(ip_port_tuple[1]) 
+
+# Services
+print("> client session address: " + my_ip_port)
+request_set_ip(username, my_ip_port)
+main_menu()
+request_service(username)
+
+    
