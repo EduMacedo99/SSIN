@@ -13,11 +13,13 @@ from dotenv import load_dotenv, dotenv_values
 from getpass import getpass
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
+from threading import Thread
+import atexit
 
 import symmetric_encryption
 import auth
 from request_service import ExceptionUserNotFound
-from socket_functions import connect_socket, listen_socket
+from socket_functions import send_message, listen_socket
 from request_service import request_service, request_set_ip, request_get_ip
 from utils import *
 
@@ -144,7 +146,6 @@ def main_menu(username, my_port):
     print("Options:")
     print("1 - Request service")
     print("2 - Send message")
-    print("3 - Wait for messages")
     option = int(input())
     if option == 1:
         request_service
@@ -152,20 +153,19 @@ def main_menu(username, my_port):
         username = input("Which client do you want to contact?\n")
         try:
             address_and_port = request_get_ip(username)
-            port = int(address_and_port.split(":")[1])
+            print("address_and_port")
+            print(address_and_port)
+            port = int(address_and_port.split(",")[1])
             print(port)
-            connect_socket(port)
+            message = input("Write your message\n")
+            send_message(message, port)
+            main_menu(username, my_port)
         except ExceptionUserNotAvailable:
-            print("This client is not available at the moment\n")
-            main_menu()
+            print("This client is not available at the moment, try again later\n")
+            main_menu(username, my_port)
         except ExceptionUserNotFound:
             print("This username does not exist in the server database\n")
-            main_menu()
-    elif option == 3:
-        #username = dotenv_values(".env")["USERNAME"]
-        #my_port = random.randint(1024, 49151)
-        #request_set_ip(username, LOCALHOST + ":" + str(my_port))
-        listen_socket(my_port)
+            main_menu(username, my_port)
     else:
         print("Invalid option\n")
         main_menu(username, my_port)
@@ -227,6 +227,9 @@ def authentication():
     return auth.authentication_server(dotenv_config, SERVER_URL, SIZE) 
 
 ########################################################### MAIN SCRIPT ###########################################################
+
+
+
 username = input("\nInsert the username you chose on the server registration:\n")
 
 if user_is_registred(username) == False:
@@ -238,7 +241,7 @@ if user_is_registred(username) == False:
 else:    
     print('\n> Already Registered.')
     
-print('> Proceeding with authentication.\n')  
+print('> Proceeding with authentication.\n')
 try:
     (new_config, ip_port_tuple) = authentication()
 except:
@@ -275,10 +278,11 @@ os.remove('.env')
 print("> Authentication done.\n")
 my_ip_port = str(ip_port_tuple[0]) + ":" + str(ip_port_tuple[1]) 
 
+listener_thread = Thread(target=listen_socket, args=(ip_port_tuple[1],))
+listener_thread.start()
 # Services
 print("> client session address: " + my_ip_port)
-request_set_ip(username, my_ip_port)
+#request_set_ip(username, my_ip_port)
 main_menu(username, my_ip_port)
-request_service(username)
 
     
