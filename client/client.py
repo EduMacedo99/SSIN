@@ -279,6 +279,7 @@ print("> Authentication done.\n")
 my_ip_port = str(ip_port_tuple[0]) + ":" + str(ip_port_tuple[1]) 
 
 listener_thread = Thread(target=listen_socket, args=(ip_port_tuple[1],))
+listener_thread.daemon = True
 listener_thread.start()
 # Services
 print("> client session address: " + my_ip_port)
