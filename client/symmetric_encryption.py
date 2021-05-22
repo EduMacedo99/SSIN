@@ -2,10 +2,15 @@ from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from base64 import b64decode
 from base64 import b64encode
+import random
+import string
+
+# Create a new IV
+def create_new_iv(size):
+    return ''.join(random.choice(string.ascii_lowercase) for x in range(size))
+
 
 # Encryption
-
-
 def encrypt(data, iv, key):
     data = str.encode(data)
     pad = data + b"\0" * (AES.block_size - len(data) % AES.block_size)

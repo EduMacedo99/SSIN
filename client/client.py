@@ -1,40 +1,47 @@
 #!python3
-from auth import authenticationLocally, authenticationServer
-from request_service import ExceptionUserNotFound
-from socket_functions import connect_socket, listen_socket
 import os
 import os.path
-from os import path
-from dotenv import load_dotenv, dotenv_values
-import dotenv
-import pyAesCrypt
-from request_service import request_service, request_set_ip, request_get_ip
-from getpass import getpass
 import re
 import random
 import string
 import requests
-import symmetric_encryption
 import base64
+import dotenv
+import pyAesCrypt
+from os import path
+from dotenv import load_dotenv, dotenv_values
+from getpass import getpass
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
+
+import symmetric_encryption
+import auth
+from request_service import ExceptionUserNotFound
+from socket_functions import connect_socket, listen_socket
+from request_service import request_service, request_set_ip, request_get_ip
 from utils import *
 
+SERVER_KEY_PATH = "resources/server_public.pem"
+SERVER_URL = "http://127.0.0.1:3000/"
 
-#desparguetar isto
+
+# TODO: desparguetar isto
 saveEnv = []
 
 def registration():
+    
+    print("\n> Start Registration.\n")
+    
     counter_pw = 0
     username = input(
         'Insert the username you chose on the server registration:\n')
     ID = input('Insert the unique ID you were given in the server registration:\n')
 
-    serverInfo = serverReg(ID)
+    server_info = server_reg(ID)
 
-    if len(serverInfo) > 0:
+    if len(server_info) > 0:
 
-        print('\nServer Registration was successfull!')
+        print('\n> Server Registration was successfull!')
 
         # polos a escolher uma password
         while counter_pw < 3:
@@ -84,36 +91,38 @@ def registration():
         print('Something went wrong')
 
 
-def serverReg(one_time_ID):
-    print(type(one_time_ID))
-    print(one_time_ID)
-    SERVER_KEY_PATH = "resources/server_public.pem"
-    SERVER_URL = "http://127.0.0.1:3000/"
-
+def server_reg(one_time_id):
+    
+    # TODO: Verify one_time_id and username
+    # na bd está com um hash de sha256
+    
+    print('\n> Valid pair of username, ID.')
+    print('> Start First-Registration.')
+    
     # prepare encryption variables
     size = 16
-    iv = ''.join(random.choice(string.ascii_lowercase) for x in range(size))
+    iv =  symmetric_encryption.create_new_iv(size)
     symmetric_key = ''.join(random.choice(string.ascii_lowercase)
                             for x in range(size))
 
     # First-Registration -> get server public key
     # get server public key
-    response = requests.get("http://127.0.0.1:3000/register")
+    response = requests.get(SERVER_URL + "register")
     open('SERVER_KEY_PATH', 'wb').write(response.content)
 
-    # encrypt one_time_ID, symmetric_key and iv with server public  key
+    # encrypt one_time_id, symmetric_key and iv with server public  key
     key = RSA.importKey(open(SERVER_KEY_PATH).read())
     cipher = PKCS1_OAEP.new(key)
 
-    one_time_ID_encrypt = base64.b64encode(
-        cipher.encrypt(one_time_ID.encode("utf-8")))
+    one_time_id_encrypt = base64.b64encode(
+        cipher.encrypt(one_time_id.encode("utf-8")))
     encrypt_key = base64.b64encode(
         cipher.encrypt(symmetric_key.encode("utf-8")))
     encrypt_iv = base64.b64encode(cipher.encrypt(iv.encode('utf-8')))
     token_encrypt = requests.post(
         SERVER_URL + "register/get_token",
         json={
-            "ID_encrypt": one_time_ID_encrypt.decode(),
+            "ID_encrypt": one_time_id_encrypt.decode(),
             "encrypt_key": encrypt_key.decode(),
             "encrypt_iv": encrypt_iv.decode(),
         }, 
@@ -201,22 +210,30 @@ def decrypt_and_read_dotenv():
 
 ########################################################### MAIN SCRIPT ###########################################################
 
-
+# TODO: criar folders para cada cliente ou qq coisa, assim depois de 1 cliente estar registrado, o proximo vai dar true mesmo n estando
 # ver se .env.aes existe - se não existir é pq nao houve registo
 if path.exists(".env.aes"):
     
-    print('> Already Registered\n> Proceeding with authentication')
+    print('> Already Registered.\n> Proceeding with authentication.')
     
+    ## Identifying and authenticating the collaborator locally
     dotenv_config = decrypt_and_read_dotenv()
-    username = dotenv_config["USERNAME"]
     
+    if (len(dotenv_config) < 2):
+        print("> Error: Authentication failed locally.")
+        exit()
+      
     ## Authenticate with the server and start a new session
-    #authenticationServer(dotenv_config)
+    # return ip_port of current session for the client
+    my_ip_port = auth.authentication_server(dotenv_config, SERVER_URL) 
     
     ## Services 
-    my_port = random.randint(1024, 49151)
-    request_set_ip(username, LOCALHOST + ":" + str(my_port))
+    username = dotenv_config["USERNAME"]
+    request_set_ip(username, my_ip_port) # my_ip_port is a tuple :)
     main_menu()
     request_service(username)
 else:
-    registration()
+    #try:
+        registration()
+    #except:
+        #print("\n> Error: Registration failed.")

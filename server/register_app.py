@@ -4,19 +4,18 @@ import random
 import getpass
 from hashlib import sha256
 
+DATABASE_PATH = '../database/Database.db'
 
-def create_table(connection=sqlite3.connect('database/Database.db')):
+def create_table(connection=sqlite3.connect(DATABASE_PATH)):
     conn.execute('''DROP TABLE IF EXISTS users;''')
     conn.execute('''
                  CREATE TABLE USERS (
                      username CHAR[8] NOT NULL PRIMARY KEY, 
-                     password_hash TEXT,
                      security_level INT CHECK(3 >= security_level >= 1),
                      one_time_id TEXT,
                      ip_address TEXT,
                      token TEXT
                      symmetric_key TEXT,
-                     symmetric_key_iv TEXT,
                      challenge TETX,
                      challenge_timeout DATE
                  )
@@ -28,16 +27,15 @@ def generate_id():
     return ''.join([random.choice(chrs) for i in range(12)])
 
 
-def new_user(username, password, security_level, one_time_id, connection=sqlite3.connect('database/Database.db')):
+def new_user(username, security_level, one_time_id, connection=sqlite3.connect(DATABASE_PATH)):
     conn.execute('INSERT INTO users VALUES ("'
                  + username + '", "'
-                 + sha256(bytes(password, "ascii")).hexdigest() + '", "'
                  + security_level + '", "'
                  + sha256(bytes(one_time_id, "ascii")).hexdigest() +
                  '", null, null, null, null, null, null);')
 
 
-def display_table(connection=sqlite3.connect('database/Database.db')):
+def display_table(connection=sqlite3.connect(DATABASE_PATH)):
     cursor = connection.execute('''SELECT * FROM users;''')
     print("Cursor:", cursor)
     for row in cursor:
@@ -49,14 +47,13 @@ def display_table(connection=sqlite3.connect('database/Database.db')):
         print("Public Key = ", row[5])
         print("Token = ", row[6])
         print("Symmetric Key = ", row[7])
-        print("Symmetric Key IV = ", row[8])
-        print("Challenge = ", row[9])
-        print("Challenge Timeout = ", row[10])
+        print("Challenge = ", row[8])
+        print("Challenge Timeout = ", row[9])
         
 
 if __name__ == "__main__":
-    conn = sqlite3.connect('database/Database.db')
-    print("Opened database successfully")
+    conn = sqlite3.connect(DATABASE_PATH)
+    print("\n> Opened database successfully.\n")
 
     username = input("Please enter collaborator username: \n")
 
@@ -67,10 +64,8 @@ if __name__ == "__main__":
 
     print("Important! Take note of your ID: ", one_time_id, "\n")
 
-    password = getpass.getpass(prompt="Please enter your password\n")
-
-    new_user(username, password, security_level, one_time_id, conn)
+    new_user(username, security_level, one_time_id, conn)
     conn.commit()
     conn.close()
 
-    print("Register completed \n")
+    print("> Register completed.\n")

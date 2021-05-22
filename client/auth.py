@@ -2,35 +2,15 @@ import requests
 import symmetric_encryption 
 import socket
 
-SERVER_IP_URL = "http://127.0.0.1:3000"
-
-"""
-Perform an automatic authentication of the client with the server for each session
-- Identifying and authenticating the collaborator locally
-- Authenticate with the server
-"""
-
-# Identifying and authenticating the collaborator locally
-def authenticationLocally(username):
-    
-    #...
-    
-    config = { 
-        "username": username, 
-        "token": "this is testing",
-        "symmetric_key": "wwiimwiegdgcyvdz",
-        "symmetric_key_iv": "hsbkjbsmdpgdwfib"
-    }
-    return config
-    
-    
-# Authenticate with the server and start a new session
-def authenticationServer(config):
+def authentication_server(config, server_ip_url):
+    """ Authenticate with the server and start a new session 
+        Return client ip_port for this session
+    """
     
     username = config["USERNAME"]
     curr_token = config["TOKEN"]
     symmetric_key = config["KEY"]
-    symmetric_key_iv = config["symmetric_key_iv"]
+    symmetric_key_iv = symmetric_encryption.create
     
     # (prof) em cada sessão, deverão escolher, pode ser o sistema operativo, um porto e comunica-lo ao servidor
     # Set up socket to talk to other clients after authentication, get >>port<<
@@ -43,7 +23,7 @@ def authenticationServer(config):
     enc_token = symmetric_encryption.encrypt(curr_token, symmetric_key_iv.encode(), symmetric_key.encode())
         
     # Exhange current token with a new token
-    res = requests.get(SERVER_IP_URL + "/auth", 
+    res = requests.get(server_ip_url + "auth", 
         json={
             "msg":"I'm username " + username + ".",
             "username": username,
@@ -59,7 +39,7 @@ def authenticationServer(config):
         # Encrypt N, and send it back
         enc_challenge = symmetric_encryption.encrypt(res_content["challenge"], symmetric_key_iv.encode(), symmetric_key.encode())
         # Send answer
-        res = requests.get(SERVER_IP_URL + "/auth/challengeRefreshToken", 
+        res = requests.get(server_ip_url + "auth/challengeRefreshToken", 
             json={
                 "msg":"Challenge solved.",
                 "username": username,

@@ -8,18 +8,18 @@ const buffertrim = require('buffertrim')
 const symmetric = require('../symmetric_encryption')
 
 /**
-* Save token, symmetric key, symmetric key iv in DB
+* Save token and symmetric key in DB
 */
-/*function saveClientRegistration (username, token, symmetric_key, symmetric_key_iv) {
+function saveClientRegistration (username, token, symmetric_key) {
     // Update DB
-    const sql = "UPDATE users SET token=?, symmetric_key=?, symmetric_key_iv=? WHERE username=?"
-    db.run(sql, [token, symmetric_key, symmetric_key_iv, username], (err, row) => {
+    const sql = "UPDATE users SET token=?, symmetric_key=? WHERE username=?"
+    db.run(sql, [token, symmetric_key, username], (err, row) => {
         if (err) 
             return console.error(err.message)
         if (row) 
             console.log("Updated DB client: ", row)
     });
-}*/
+}
 
 app.get('/', function (req, res) {
     console.log(req.body);
@@ -65,9 +65,8 @@ app.post('/get_token', function (req, res) {
     console.log("token: " + token)
     //**************************************************************************** */
     
-    // Save token, symmetric key, symmetric key iv in DB
-    // TODO: test this 
-    /*saveClientRegistration(username, token, symmetric_key, iv);*/
+    // Save token and symmetric key in DB
+    saveClientRegistration(username, token, symmetric_key);
     
     const enc_token = symmetric.encrypt(token, iv, symmetric_key);
     console.log("enc_token: " + enc_token);
