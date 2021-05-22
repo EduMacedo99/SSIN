@@ -16,8 +16,8 @@
     $ node index
 
 ## First Registration &/or Authentication (New Session)
-    $ cd client/_USERNAME_
-    $ python ../client/client.py
+    $ cd client
+    $ python client.py
 
 * Main Menu
     1. Request service
