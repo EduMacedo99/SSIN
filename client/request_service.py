@@ -1,3 +1,4 @@
+from Crypto.PublicKey import RSA
 import requests
 import symmetric_encryption 
 
@@ -109,7 +110,7 @@ def request_public_key(config, username_2):
     # If server response was ok
     if res.ok: 
         print("> Get public key with success.\n")
-        return  res_content["public_key"]
+        return  RSA.importKey(res_content["public_key"])
     else:
         raise ExceptionUserNotFound
 

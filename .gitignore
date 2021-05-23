@@ -5,6 +5,7 @@
 
 .env
 .env.aes
+*.key
 
 # User-specific files
 *.rsuser

@@ -14,12 +14,14 @@ from getpass import getpass
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from threading import Thread
-import atexit
+import socket
+import ast
 
+from gen_key import save_key_pair, request_set_pub_key
 import symmetric_encryption
 import auth
 from request_service import ExceptionUserNotFound
-from socket_functions import send_message, listen_socket
+from socket_functions import listen_socket, send_message
 from request_service import request_service, request_set_ip, request_get_ip, request_public_key
 from utils import *
 
@@ -147,43 +149,19 @@ def main_menu(username, my_port, config):
     print("1 - Request service")
     print("2 - Send message")
     print("3 - Exit")
-    option = int(input("option: "))
-    
-    if option == 1:
-        request_service(config)
-        
-    elif option == 2:
-        username_2 = input("Which client do you want to contact?\n")
-        try:
-            address_and_port = request_get_ip(config, username_2)
-            public_key = request_public_key(config, username_2)
-            port = int(address_and_port.split(",")[1])
-            print(port)
-            print(public_key)
-            message = input("Write your message:\n")
-
-            cipher = PKCS1_OAEP.new(public_key)
-
-            encrypted_message = base64.b64encode(
-                cipher.encrypt(message.encode("utf-8")))
-        
-            send_message(encrypted_message, port)
-            main_menu(username, my_port, config)
-        except ExceptionUserNotAvailable:
-            print("> This client is not available at the moment, try again later\n")
-            main_menu(username, my_port, config)
-        except ExceptionUserNotFound:
-            print("> This username does not exist in the server database\n")
-            main_menu(username, my_port, config)
-            
-    elif option == 3:
-        print("> Exiting ...\n")
-        return
-    
-    else:
-        print("Invalid option\n")
-        main_menu(username, my_port, config)
-     
+    try:
+        option = int(input("option: "))
+        if option == 1:
+            request_service(config)
+        elif option == 2:
+            send_message(config)
+        elif option == 3:
+            print("> Exiting ...\n")
+            return
+        else:
+            print("Invalid option\n")
+    except ValueError:
+        print("Invalid option\n")     
     main_menu(username, my_ip_port, config)
 
 def decrypt_and_read_dotenv():
@@ -250,6 +228,8 @@ username = input("\nInsert the username you chose on the server registration:\n"
         
 if user_is_registred(username) == False:
     registration(username)
+    save_key_pair()
+    request_set_pub_key(username)
     proceed = input("Do you want to proceed with login? [y|n]\n")
     if proceed == "n":
         print('> Exiting...\n')
