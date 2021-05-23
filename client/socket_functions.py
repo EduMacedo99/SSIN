@@ -36,7 +36,7 @@ def send_message(config):
     username_2 = input("Which client do you want to contact?\n")
     try:
         address_and_port = request_get_ip(config, username_2)
-        port = int(address_and_port.split(",")[1])
+        port = int(address_and_port.split(":")[1])
         public_key = request_public_key(config, username_2)
         message = input("Write your message:\n")
         cipher = PKCS1_OAEP.new(public_key)
