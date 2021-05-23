@@ -32,6 +32,13 @@ keyToDecrypt = ''
 # TODO: desparguetar isto
 saveEnv = []
 
+# TODO: After the session is done or something wrong happens,set the client as not available
+def close_client(value=0):
+    # Agora ao colocar "NOT_AVAILABLE", o server vai saber que nao está disponivel
+    print("> Set client as not available.")
+    request_set_ip(new_config, "NOT_AVAILABLE")
+    exit(value)
+   
 def registration(username):
     
     print("\n> Start Registration.\n")
@@ -58,8 +65,8 @@ def registration(username):
                 print('\n> Password not strong enough... Try again')
                 counter_pw += 1
                 if counter_pw >= 3:
-                    print("> Maximum tries exceeded. Exiting...")
-                    exit()
+                    print("> Maximum tries exceeded. Exiting...")     
+                    close_client()
 
         # criar ficheiro .env, por a info, encriptalon e apagá-lo
         f = open(".env", "x")
@@ -88,7 +95,7 @@ def registration(username):
 
     else:
         print('> Error: Something went wrong')
-        exit(-1)
+        close_client(-1)
 
 
 def server_reg(username, one_time_ID):
@@ -168,13 +175,10 @@ def main_menu(username, my_port, config):
                 cipher.encrypt(message.encode("utf-8")))
         
             send_message(encrypted_message, port)
-            main_menu(username, my_port, config)
         except ExceptionUserNotAvailable:
             print("> This client is not available at the moment, try again later\n")
-            main_menu(username, my_port, config)
         except ExceptionUserNotFound:
             print("> This username does not exist in the server database\n")
-            main_menu(username, my_port, config)
             
     elif option == 3:
         print("> Exiting ...\n")
@@ -206,7 +210,7 @@ def decrypt_and_read_dotenv():
             counter += 1
             if counter >= 3:
                 print('> Number of tries exceeded. Terminating program...')
-                exit()
+                close_client()
 
     # get info
     try:
@@ -214,7 +218,7 @@ def decrypt_and_read_dotenv():
             raise_error_if_not_found=True)  # argumento file name existe
     except OSError:
         print('.env not foud')
-        exit()
+        close_client()
 
     config = dotenv_values(".env")
 
@@ -236,7 +240,7 @@ def authentication():
     
     if (len(dotenv_config) < 2):
         print("> Error: Authentication failed locally.")
-        exit()
+        close_client()
       
     # Authenticate with the server and start a new session
     # return ip_port of current session for the client
@@ -253,7 +257,7 @@ if user_is_registred(username) == False:
     proceed = input("Do you want to proceed with login? [y|n]\n")
     if proceed == "n":
         print('> Exiting...\n')
-        exit()     
+        close_client()     
 else:    
     print('\n> Already Registered.')
     
@@ -262,7 +266,7 @@ print('> Proceeding with authentication.\n')
 (new_config, my_ip_port) = authentication()
 #except:
     #print("> Something went wrong.")
-    #exit(-1)
+    #close_client(-1)
     
 #TODO Por dentro d euma função para desparguetar
 print('(2 KEY TO DECRYPT > ' + keyToDecrypt + ")")
@@ -272,7 +276,7 @@ try:
     os.remove(".env.aes")
 except ValueError:
     print('\n> .env was corrupted. Exiting...')
-    exit(-1)
+    close_client(-1)
 
 try:
     dotenv_file = dotenv.find_dotenv(
@@ -299,5 +303,7 @@ print("> client session address: " + my_ip_port)
 # agora está a dar o new_config que veio na autenticação e assim nao pede
 request_set_ip(new_config, my_ip_port)
 main_menu(username, my_ip_port, new_config)
+
+close_client()
 
     

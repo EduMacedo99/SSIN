@@ -86,14 +86,19 @@ app.post('/set_ip', async function (req, res){
     console.log("... client " + username + " wants to set a new ip " + dec_ip )
 
     var sql_set_ip = "UPDATE users SET ip_address=? WHERE username=?"
-    DBconnect.run(sql_set_ip, [dec_ip], async function (err, row) {
+    DBconnect.run(sql_set_ip, [dec_ip, username], async function (err, row) {
         if (err) {
           res.status(500).json({"msg":err.message})
           return console.error(err.message)
         }
         if (this.changes == 0){
           console.log("No rows to update.\n")
-          res.status(200).json({"msg":"No rows to update"})
+
+          // Encrypt msg
+          const new_iv_server = symmetric.createNewIV(utils.SIZE)
+          const enc_msg = symmetric.encrypt("No rows to update", new_iv_server, client.symmetric_key)
+
+          res.status(200).json({"msg": enc_msg, "new_iv": new_iv_server})
         }
         else if (this.changes > 0) {
           console.log(`... Row(s) updated: ${this.changes}`)
@@ -101,9 +106,9 @@ app.post('/set_ip', async function (req, res){
 
           // Encrypt msg
           const new_iv_server = symmetric.createNewIV(utils.SIZE)
-          const enc_msg = symmetric.encrypt(  username + " ip set to " + dec_ip + N, new_iv_server, client.symmetric_key)
+          const enc_msg = symmetric.encrypt(username + " ip set to " + dec_ip, new_iv_server, client.symmetric_key)
 
-          res.status(201).json({"msg": enc_msg, "new_iv": new_iv_server})
+          res.status(200).json({"msg": enc_msg, "new_iv": new_iv_server})
         }
       })
     })
@@ -119,22 +124,35 @@ app.post('/set_ip', async function (req, res){
 app.get('/get_ip', function(req, res){
   console.log("Get ip ...")
 
-  const {username_2} = req.body
+  const {username, username_2, new_iv} = req.body
 
-  utils.getClient(res, req.body, () => {
+  utils.getClient(res, req.body, (client) => {
+
+    // Decrypt username_2
+    const dec_username_2 = symmetric.decrypt(username_2, new_iv, client.symmetric_key)
+    console.log("... client " + username + " wants to know ip of " + dec_username_2)
+
     var sql_get_ip = "SELECT ip_address FROM users WHERE username=?"
-    DBconnect.get(sql_get_ip, [username_2], (err, row) => {
+    DBconnect.get(sql_get_ip, [dec_username_2], (err, row) => {
       if (err) {
         res.status(500).json({"msg":err.message})
         return console.error(err.message)
       }
-      if (row == undefined){
-        console.log(username_2 + " that you want to talk not found.\n")
-        res.status(500).json({"msg": username_2 + " that you want to talk not found."})
+      if (row == undefined || row.ip_address == null){
+        console.log("The " + dec_username_2 + " you want to talk not found.\n")
+        res.status(500).json({"msg": "The client you want to talk not found."})
+      }
+      else if (row.ip_address == "NOT_AVAILABLE"){
+        console.log(dec_username_2 + " ip is " + row.ip_address + "\n")
+        res.status(501).json({"msg": "The client you want to talk is not available right now."})
       }
       else {
-        console.log(username_2 + " ip is " + row.ip_address + "\n")
-        res.status(row.public_key != null ? 200 : 500).json({"msg": username_2 + " ip is " + row.ip_address, "ip_port": row.ip_address})
+        // Encrypt msg
+        const new_iv_server = symmetric.createNewIV(utils.SIZE)
+        const enc_msg = symmetric.encrypt(dec_username_2 + " ip is " + row.ip_address, new_iv_server, client.symmetric_key)
+        
+        console.log(dec_username_2 + " ip is " + row.ip_address + "\n")
+        res.status(200).json({"msg": enc_msg, "ip_port": row.ip_address, "new_iv": new_iv_server})
       }
     })
   })

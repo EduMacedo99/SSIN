@@ -40,7 +40,7 @@ def request_service(config):
         print("Invalid option:", service_id)
         return
        
-    data = prepare_request(config)
+    data = prepare_request(config, {})
     data["msg"] = "Client choose service " + str(service_id) + ".",
     data["service_data"] = service_data
         
@@ -67,39 +67,48 @@ def request_set_ip(config, ip):
         json = prepare_request(config, {"ip_address": ip})
     )
     res_content = res.json()
-    print("> Server: " + res_content["msg"])
     
     # If server response was ok
     if res.ok: 
+        # Get new IV
+        iv_response = res_content["new_iv"]
+        # Decrypt msg
+        msg_response= symmetric_encryption.decrypt(res_content["msg"], iv_response.encode(), config["KEY"].encode())
+        print("> Server: " + msg_response)
         print("> Set IP done with success.\n")
     else:
+        print("> Server: " + res_content["msg"])
         raise ExceptionNoUsernameFound
 
 def request_get_ip(config, username_2):
     if config == None or username_2 == None:
         raise ExceptionNoUsernameFound
-        
-    data = prepare_request(config)
-    data["msg"] = "Client wants to know ip of " + username_2
-    data["username_2"] = username_2
-    
+
     # Request ip of username_2
     res = requests.get(SERVER_ADDRESS + "/service/get_ip",
-        json = data 
+        json = prepare_request(config, {"username_2":username_2}) 
     )
     res_content = res.json()
-    print("> Server: " + res_content["msg"])
     
     # If server response was ok
     if res.ok: 
+        # Get new IV
+        iv_response = res_content["new_iv"]
+        # Decrypt msg
+        msg_response= symmetric_encryption.decrypt(res_content["msg"], iv_response.encode(), config["KEY"].encode())
+        print("> Server: " + msg_response)
         print("> Get IP with success.\n")
         return  res_content["ip_port"]
     else:
-        raise ExceptionUserNotFound
+        print("> Server: " + res_content["msg"])
+        if res.status_code == 501:
+            raise ExceptionUserNotAvailable
+        else:
+            raise ExceptionUserNotFound
 
 
 def request_public_key(config, username_2):
-    data = prepare_request(config)
+    data = prepare_request(config, {})
     data["msg"] = "Client wants to know pub key of " + username_2
     data["username_2"] = username_2
     res = requests.get(SERVER_ADDRESS + "/service/public_key",

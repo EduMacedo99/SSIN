@@ -63,7 +63,7 @@ Server Response:
 ---------------------------------------------
 Client get ip Request:
 * not encrypted: username, new_iv
-* encrypted: token
+* encrypted: token, username_2
 
 Server Response:
 * not encrypted: new_iv, ip_port
