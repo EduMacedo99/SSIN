@@ -3,8 +3,8 @@ import symmetric_encryption
 
 from utils import *
 
-# Return json data with username, cl_token and new_iv
-def prepare_request(config):
+# Return json data with username, cl_token and new_iv, and the other things in the data 
+def prepare_request(config, data):
     
     username = config["USERNAME"]
     curr_token = config["TOKEN"]
@@ -14,7 +14,13 @@ def prepare_request(config):
     symmetric_key_iv = symmetric_encryption.create_new_iv(SIZE)
     enc_token = symmetric_encryption.encrypt(curr_token, symmetric_key_iv.encode(), symmetric_key.encode())
     
-    return {"username": username, "cl_token":enc_token, "new_iv": symmetric_key_iv}
+    res = {"username": username, "cl_token":enc_token, "new_iv": symmetric_key_iv}
+    
+    # Encrypt others
+    for i in data.keys():
+        res[i] = symmetric_encryption.encrypt(data[i], symmetric_key_iv.encode(), symmetric_key.encode())
+    
+    return res
 
 
 def request_service(config):  
@@ -55,14 +61,10 @@ def request_service(config):
 def request_set_ip(config, ip):
     if config == None:
         raise ExceptionNoUsernameFound
-
-    data = prepare_request(config)
-    data["msg"] = "Client want to set a new ip " + ip
-    data["ip_address"] = ip
     
     # Request to set ip
     res = requests.post(SERVER_ADDRESS + "/service/set_ip",
-        json = data 
+        json = prepare_request(config, {"ip_address": ip})
     )
     res_content = res.json()
     print("> Server: " + res_content["msg"])

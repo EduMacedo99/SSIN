@@ -96,6 +96,8 @@ app.get("/challengeRefreshToken", function (req, res) {
     const enc_msg = symmetric.encrypt("Okay, it is a match.", new_iv_server, symmetric_key)
     const enc_token = symmetric.encrypt( new_token, new_iv_server, symmetric_key)
 
+    console.log("... port: " + dec_ip_port + ", new_token: " + new_token)
+
     // Send new token to the client
     res.status(200).json({"msg":enc_msg, token: enc_token, "new_iv": new_iv_server})
     console.log("Authentication done.\n")

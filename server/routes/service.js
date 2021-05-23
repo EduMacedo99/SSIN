@@ -77,12 +77,16 @@ function serviceResponse (req, res) {
  */
 app.post('/set_ip', async function (req, res){
   console.log("Set ip ...")
+  const {username, ip_address, new_iv} = req.body
 
-  const {username, ip_address} = req.body
+  utils.getClient(res, req.body, (client) => {
 
-  utils.getClient(res, req.body, () => {
+    // Decrypt ip
+    const dec_ip = symmetric.decrypt(ip_address, new_iv, client.symmetric_key)
+    console.log("... client " + username + " wants to set a new ip " + dec_ip )
+
     var sql_set_ip = "UPDATE users SET ip_address=? WHERE username=?"
-    DBconnect.run(sql_set_ip, [ip_address], async function (err, row) {
+    DBconnect.run(sql_set_ip, [dec_ip], async function (err, row) {
         if (err) {
           res.status(500).json({"msg":err.message})
           return console.error(err.message)
@@ -93,8 +97,13 @@ app.post('/set_ip', async function (req, res){
         }
         else if (this.changes > 0) {
           console.log(`... Row(s) updated: ${this.changes}`)
-          console.log(username + " ip set to " + ip_address + "\n")
-          res.status(201).json({"msg": username + " ip set to " + ip_address})
+          console.log(username + " ip set to " + dec_ip + "\n")
+
+          // Encrypt msg
+          const new_iv_server = symmetric.createNewIV(utils.SIZE)
+          const enc_msg = symmetric.encrypt(  username + " ip set to " + dec_ip + N, new_iv_server, client.symmetric_key)
+
+          res.status(201).json({"msg": enc_msg, "new_iv": new_iv_server})
         }
       })
     })

@@ -44,10 +44,28 @@ Server Response:
 ---------------------------------------------
 Client Challenge Solved Request:
 * not encrypted: username, new_iv
-* encrypted: "challenge", ip_port, succ_msg
+* encrypted: "challenge", ip_port
 
 Server Response:
 * not encrypted: new_iv
 * encrypted: new_token, succ_msg
 ---------------------------------------------
 ## Services
+---------------------------------------------
+Client set ip Request:
+* not encrypted: username, new_iv
+* encrypted: token, ip_port
+
+Server Response:
+* not encrypted: new_iv
+* encrypted: succ_msg
+---------------------------------------------
+---------------------------------------------
+Client get ip Request:
+* not encrypted: username, new_iv
+* encrypted: token
+
+Server Response:
+* not encrypted: new_iv, ip_port
+* encrypted: ip_port, succ_msg
+---------------------------------------------
