@@ -26,3 +26,28 @@
         3. Paramaterized n-root (security level: 3)
     2. Send message
     3. Wait for messages
+
+
+# Encrypt Process
+
+## Registration
+
+## Authentication
+---------------------------------------------
+Client Challenge Request:
+* not encrypted: username, new_iv
+* encrypted: token, msg
+
+Server Response:
+* not encrypted: challenge, new_iv
+* encrypted: succ_msg
+---------------------------------------------
+Client Challenge Solved Request:
+* not encrypted: username, new_iv
+* encrypted: "challenge", ip_port, succ_msg
+
+Server Response:
+* not encrypted: new_iv
+* encrypted: new_token, succ_msg
+---------------------------------------------
+## Services

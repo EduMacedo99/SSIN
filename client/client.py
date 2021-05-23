@@ -157,7 +157,7 @@ def main_menu(username, my_port, config):
         try:
             address_and_port = request_get_ip(config, username_2)
             public_key = request_public_key(config, username_2)
-            port = int(address_and_port.split(",")[1])
+            port = int(address_and_port.split(":")[1])
             print(port)
             print(public_key)
             message = input("Write your message:\n")
@@ -258,11 +258,11 @@ else:
     print('\n> Already Registered.')
     
 print('> Proceeding with authentication.\n')
-try:
-    (new_config, ip_port_tuple) = authentication()
-except:
-    print("> Something went wrong.")
-    exit(-1)
+#try:
+(new_config, my_ip_port) = authentication()
+#except:
+    #print("> Something went wrong.")
+    #exit(-1)
     
 #TODO Por dentro d euma função para desparguetar
 print('(2 KEY TO DECRYPT > ' + keyToDecrypt + ")")
@@ -287,9 +287,9 @@ pyAesCrypt.encryptFile(".env", ".env.aes", keyToDecrypt)
 os.remove('.env')
 
 print("> Authentication done.\n")
-my_ip_port = str(ip_port_tuple[0]) + ":" + str(ip_port_tuple[1]) 
 
-listener_thread = Thread(target=listen_socket, args=(ip_port_tuple[1],))
+port = int(my_ip_port.split(":")[1])
+listener_thread = Thread(target=listen_socket, args=(port,))
 listener_thread.daemon = True
 listener_thread.start()
 

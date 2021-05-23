@@ -4,7 +4,9 @@ const buffertrim = require('buffertrim')
 
 module.exports = {
 
-   
+    createNewIV: function(size, key){
+        return crypto.randomBytes(8).toString('hex')
+    },
     encrypt: function(message, iv, key) {
         var bufPlaintextB64padded = padding.toB64padded(message, 16)                              // Base64 encoding and Zero padding
         var cipher = crypto.createCipheriv('aes-128-cbc', key, iv)

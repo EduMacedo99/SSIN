@@ -16,6 +16,7 @@ def authentication_server(config, server_ip_url, size):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((socket.gethostname(), 0))
     ip_port = s.getsockname()
+    ip_port = str(ip_port[0]) + ":" + str(ip_port[1])
     print("\n> Client address:", ip_port)
         
     # Encrypt token
@@ -25,39 +26,47 @@ def authentication_server(config, server_ip_url, size):
     # Exhange current token with a new token
     res = requests.get(server_ip_url + "auth", 
         json={
-            "msg":"I'm username " + username + ".",
             "username": username,
             "cl_token": enc_token,
             "new_iv": symmetric_key_iv
             } 
     )
     res_content = res.json()
-    print("> Server: " + res_content["msg"])
         
     # If server sended challenge
     if res.ok: 
+        # Get new IV
+        iv_response = res_content["new_iv"]
+        # Decrypt msg
+        msg_response= symmetric_encryption.decrypt(res_content["msg"], iv_response.encode(), symmetric_key.encode())
+        print("> Server: " + msg_response)
+        
         # Prove you are "username" and solve the challenge N 
         # Encrypt N, and send it back
         symmetric_key_iv = symmetric_encryption.create_new_iv(size)
         enc_challenge = symmetric_encryption.encrypt(res_content["challenge"], symmetric_key_iv.encode(), symmetric_key.encode())
+        enc_ip_port = symmetric_encryption.encrypt(ip_port, symmetric_key_iv.encode(), symmetric_key.encode())
         
         # Send answer
         res = requests.get(server_ip_url + "auth/challengeRefreshToken", 
             json={
-                "msg":"Challenge solved.",
                 "username": username,
                 "enc_challenge": enc_challenge,
                 "new_iv": symmetric_key_iv,
-                "ip_port": ip_port
+                "ip_port": enc_ip_port
             } 
         )
         res_content = res.json()
-        print("> Server: " + res_content["msg"])
-            
+
         # If server sended a new token, means client is authenticated, decrypt the new token and save it
         if res.ok:
+            # Get new IV
+            iv_response = res_content["new_iv"]
+            # Decrypt msg
+            msg_response= symmetric_encryption.decrypt(res_content["msg"], iv_response.encode(), symmetric_key.encode())
+            print("> Server: " + msg_response)
             # Decrypt token
-            curr_token = symmetric_encryption.decrypt(res_content["token"], symmetric_key_iv.encode(), symmetric_key.encode())
+            curr_token = symmetric_encryption.decrypt(res_content["token"], iv_response.encode(), symmetric_key.encode())
             
             config["TOKEN"] = curr_token;
             print("> Refresh token done: " + curr_token)
@@ -65,7 +74,9 @@ def authentication_server(config, server_ip_url, size):
             return (config, ip_port)
 
         else:
+            print("> Server: " + res_content["msg"])
             print("> Authentication denied.\n")
     else:
+        print("> Server: " + res_content["msg"])
         print("> Authentication denied.\n")
 

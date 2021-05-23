@@ -88,7 +88,7 @@ app.post('/set_ip', async function (req, res){
           return console.error(err.message)
         }
         if (this.changes == 0){
-          console.log("No rows to update.")
+          console.log("No rows to update.\n")
           res.status(200).json({"msg":"No rows to update"})
         }
         else if (this.changes > 0) {
@@ -125,7 +125,7 @@ app.get('/get_ip', function(req, res){
       }
       else {
         console.log(username_2 + " ip is " + row.ip_address + "\n")
-        res.status(201).json({"msg": username_2 + " ip is " + row.ip_address, "ip_port": row.ip_address})
+        res.status(row.public_key != null ? 200 : 500).json({"msg": username_2 + " ip is " + row.ip_address, "ip_port": row.ip_address})
       }
     })
   })
@@ -148,7 +148,7 @@ app.get('/public_key', function (req, res) {
     }
     else {
       console.log(username_2 + " pub key is " + row.public_key + "\n")
-      res.status(201).json({"public_key": row.public_key})
+      res.status(row.public_key != null ? 200 : 500).json({"public_key": row.public_key})
     }
   })
 

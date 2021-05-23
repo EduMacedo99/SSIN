@@ -28,9 +28,9 @@ const CHALLENGE_TIMEOUT = 10
  * If username+token exists, Authenticator Server sends a challenge (different each time)
  */
 app.get("/", function (req, res) {
-    const { msg, username } = req.body
+    const { username } = req.body
     console.log("Start of authentication ...")
-    console.log("... client< ? >: " + msg)
+    console.log("... client: " + "I'm username " + username + ".")
 
     utils.getClient(res, req.body, (client) => {
 
@@ -45,7 +45,12 @@ app.get("/", function (req, res) {
       // Save challenge on the DB, and its expire timeout
       utils.saveChallenge(username, N, expire_time, client.symmetric_key)
 
-      res.status(200).json({"msg": username+ "? Prove it, challenge: " + N, challenge: N, timeout: expire_time})
+      // Encrypt timeout and msg
+      const new_iv = symmetric.createNewIV(utils.SIZE)
+      const enc_msg = symmetric.encrypt( username+ "? Prove it, challenge: " + N, new_iv, client.symmetric_key)
+
+      res.status(200).json({"msg": enc_msg, challenge: N, new_iv: new_iv})
+
     })
 })
 
@@ -54,8 +59,8 @@ app.get("/", function (req, res) {
  * If client is correct, refresh token
  */
 app.get("/challengeRefreshToken", function (req, res) {
-  const { msg, username, enc_challenge, ip_port, new_iv} = req.body
-  console.log("... client<" + ip_port + ">: " + msg)
+  const { username, enc_challenge, ip_port, new_iv} = req.body
+  console.log("... client: Challenge solved.")
 
   // Verify if is correct
   // Get symmetric key and encrypted challenge from DB, + timeout
@@ -68,7 +73,7 @@ app.get("/challengeRefreshToken", function (req, res) {
       res.status(500).json({"msg":"Challenge lifetime expired."})
       return
     }
-    // Decrypt challenge answer
+    // Decrypt challenge answer 
     const dec_challenge = symmetric.decrypt(enc_challenge, new_iv, symmetric_key)
     // Encrypted challenge from DB must be equal to answer: enc_challenge
     if(challenge != dec_challenge){
@@ -76,19 +81,23 @@ app.get("/challengeRefreshToken", function (req, res) {
       res.status(500).json({"msg":"Answer do not macth."})
       return
     }
+    // Decrypt ip_port
+    const dec_ip_port = symmetric.decrypt(ip_port, new_iv, symmetric_key)
 
     // (slides) If so, distribute a short-term session key(new token) for being used between the two
     // Create new token
     const new_token = Crypto.randomBytes(12).toString("base64").slice(0, 12)
             
     // Update DB with new token + ip_port of client session
-    utils.saveClientNewSession (username, new_token, ip_port)
+    utils.saveClientNewSession (username, new_token, dec_ip_port)
 
-    // Encrypt new token
-    const enc_token = symmetric.encrypt(new_token, new_iv, symmetric_key)
+    // Encrypt new token and msg
+    const new_iv_server = symmetric.createNewIV(utils.SIZE)
+    const enc_msg = symmetric.encrypt("Okay, it is a match.", new_iv_server, symmetric_key)
+    const enc_token = symmetric.encrypt( new_token, new_iv_server, symmetric_key)
 
     // Send new token to the client
-    res.status(200).json({"msg":"Okay, it is a match.", token: enc_token})
+    res.status(200).json({"msg":enc_msg, token: enc_token, "new_iv": new_iv_server})
     console.log("Authentication done.\n")
   })
 })
