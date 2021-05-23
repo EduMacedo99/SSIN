@@ -155,19 +155,19 @@ def main_menu(username, my_port, config):
     elif option == 2:
         username_2 = input("Which client do you want to contact?\n")
         try:
-            address_and_port = request_get_ip(username_2)
+            address_and_port = request_get_ip(config, username_2)
             print("address_and_port")
             print(address_and_port)
             port = int(address_and_port.split(",")[1])
             print(port)
-            message = input("Write your message\n")
+            message = input("Write your message:\n")
             send_message(message, port)
             main_menu(username, my_port, config)
         except ExceptionUserNotAvailable:
-            print("This client is not available at the moment, try again later\n")
+            print("> This client is not available at the moment, try again later\n")
             main_menu(username, my_port, config)
         except ExceptionUserNotFound:
-            print("This username does not exist in the server database\n")
+            print("> This username does not exist in the server database\n")
             main_menu(username, my_port, config)
             
     elif option == 3:

@@ -51,8 +51,11 @@ def request_service(config):
     else:
         print("> Service failed.\n")
 
+
 def request_set_ip(config, ip):
-    
+    if config == None:
+        raise ExceptionNoUsernameFound
+
     data = prepare_request(config)
     data["msg"] = "Client want to set a new ip " + ip
     data["ip_address"] = ip
@@ -67,17 +70,27 @@ def request_set_ip(config, ip):
     # If server response was ok
     if res.ok: 
         print("> Set IP done with success.\n")
-
-
-def request_get_ip(username):
-    if username == None:
-        raise ExceptionNoUsernameFound
-    data = {"username":username}
-    
-    token = requests.post(
-        SERVER_ADDRESS + "/service/get_ip", params=data)
-        
-    if (token.text == "USER_NOT_FOUND"):
-        raise ExceptionUserNotFound
     else:
-        return token.text.split(" ")[-1]
+        raise ExceptionNoUsernameFound
+
+def request_get_ip(config, username_2):
+    if config == None or username_2 == None:
+        raise ExceptionNoUsernameFound
+        
+    data = prepare_request(config)
+    data["msg"] = "Client wants to know ip of " + username_2
+    data["username_2"] = username_2
+    
+    # Request ip of username_2
+    res = requests.get(SERVER_ADDRESS + "/service/get_ip",
+        json = data 
+    )
+    res_content = res.json()
+    print("> Server: " + res_content["msg"])
+    
+    # If server response was ok
+    if res.ok: 
+        print("> Get IP with success.\n")
+        return  res_content["ip_port"]
+    else:
+        raise ExceptionUserNotFound

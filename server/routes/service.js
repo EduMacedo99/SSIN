@@ -81,8 +81,7 @@ app.post('/set_ip', async function (req, res){
   const {username, ip_address} = req.body
 
   utils.getClient(res, req.body, () => {
-
-    var sql_set_ip = "UPDATE users SET ip_address=?"
+    var sql_set_ip = "UPDATE users SET ip_address=? WHERE username=?"
     DBconnect.run(sql_set_ip, [ip_address], async function (err, row) {
         if (err) {
           res.status(500).json({"msg":err.message})
@@ -90,8 +89,7 @@ app.post('/set_ip', async function (req, res){
         }
         if (this.changes == 0){
           console.log("No rows to update.")
-          console.log("Set ip failed. User " + username + " not found.")
-          res.status(500).json({"msg":"User " + username + " not found. No rows to update"})
+          res.status(200).json({"msg":"No rows to update"})
         }
         else if (this.changes > 0) {
           console.log(`... Row(s) updated: ${this.changes}`)
@@ -104,21 +102,34 @@ app.post('/set_ip', async function (req, res){
   })
 
 /**
+ * Check if username and token are valid
+ * Return ip or "USER_NOT_FOUND"
+ * 
  * TODO: Evitar SQL Injection
  */
-app.post('/get_ip', function(req, res){
-  var sql_get_ip = "SELECT ip_address FROM users WHERE username=?"
-  DBconnect.get(sql_get_ip, [req.query.username], (err, row) => {
-    if (err) {
-      return console.error(err.message)
-    }
-    if (row == undefined){
-      res.send("USER_NOT_FOUND")
-    }
-    else {
-      res.send("ip = "+row.ip_address)
-    }
+app.get('/get_ip', function(req, res){
+  console.log("Get ip ...")
+
+  const {username_2, ip_address} = req.body
+
+  utils.getClient(res, req.body, () => {
+    var sql_get_ip = "SELECT ip_address FROM users WHERE username=?"
+    DBconnect.get(sql_get_ip, [username_2], (err, row) => {
+      if (err) {
+        res.status(500).json({"msg":err.message})
+        return console.error(err.message)
+      }
+      if (row == undefined){
+        console.log(username_2 + " that you want to talk not found.\n")
+        res.status(500).json({"msg": username_2 + " that you want to talk not found."})
+      }
+      else {
+        console.log(username_2 + " ip is " + row.ip_address + "\n")
+        res.status(201).json({"msg": username_2 + " ip is " + row.ip_address, "ip_port": row.ip_address})
+      }
+    })
   })
+
 })
 
 app.get('/', function (req, res) {

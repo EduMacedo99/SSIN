@@ -6,11 +6,11 @@ def listen_socket(port):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((LOCALHOST, port))
         s.listen()
-        print("Waiting for messages in port "+str(port))
+        print("+ Waiting for messages in port "+str(port))
         while True:
             conn, addr = s.accept()
             with conn:
-                print('Received message from', addr)
+                print('\n+ Received message from', addr)
                 data = conn.recv(1024)
                 print("Message:\n" + str(data)[2:-1])
                 # TODO: encrypt and store message
