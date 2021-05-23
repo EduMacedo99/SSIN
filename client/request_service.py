@@ -94,3 +94,22 @@ def request_get_ip(config, username_2):
         return  res_content["ip_port"]
     else:
         raise ExceptionUserNotFound
+
+
+def request_public_key(config, username_2):
+    data = prepare_request(config)
+    data["msg"] = "Client wants to know pub key of " + username_2
+    data["username_2"] = username_2
+    res = requests.get(SERVER_ADDRESS + "/service/public_key",
+        json = data 
+    )
+    res_content = res.json()
+    #print("> Server: " + res_content["msg"])
+    
+    # If server response was ok
+    if res.ok: 
+        print("> Get public key with success.\n")
+        return  res_content["public_key"]
+    else:
+        raise ExceptionUserNotFound
+

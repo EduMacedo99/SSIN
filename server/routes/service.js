@@ -132,6 +132,29 @@ app.get('/get_ip', function(req, res){
 
 })
 
+
+app.get('/public_key', function (req, res) {
+  console.log("Start service ...")
+  const username_2 = req.params.username_2
+  var sql_get_ip = "SELECT public_key FROM users WHERE username=?"
+  DBconnect.get(sql_get_ip, [username_2], (err, row) => {
+    if (err) {
+      res.status(500).json({"msg":err.message})
+      return console.error(err.message)
+    }
+    if (row == undefined){
+      console.log(username_2 + " that you want to talk not found.\n")
+      res.status(500).json({"msg": username_2 + " that you want to talk not found."})
+    }
+    else {
+      console.log(username_2 + " pub key is " + row.public_key + "\n")
+      res.status(201).json({"public_key": row.public_key})
+    }
+  })
+
+})
+
+
 app.get('/', function (req, res) {
   console.log("Start service ...")
 

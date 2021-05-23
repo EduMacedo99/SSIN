@@ -20,7 +20,7 @@ import symmetric_encryption
 import auth
 from request_service import ExceptionUserNotFound
 from socket_functions import send_message, listen_socket
-from request_service import request_service, request_set_ip, request_get_ip
+from request_service import request_service, request_set_ip, request_get_ip, request_public_key
 from utils import *
 
 SERVER_KEY_PATH = "resources/server_public.pem"
@@ -156,12 +156,16 @@ def main_menu(username, my_port, config):
         username_2 = input("Which client do you want to contact?\n")
         try:
             address_and_port = request_get_ip(config, username_2)
-            print("address_and_port")
-            print(address_and_port)
+            public_key = request_public_key(config, username_2)
             port = int(address_and_port.split(",")[1])
-            print(port)
             message = input("Write your message:\n")
-            send_message(message, port)
+
+            cipher = PKCS1_OAEP.new(public_key)
+
+            encrypted_message = base64.b64encode(
+                cipher.encrypt(message.encode("utf-8")))
+        
+            send_message(encrypted_message, port)
             main_menu(username, my_port, config)
         except ExceptionUserNotAvailable:
             print("> This client is not available at the moment, try again later\n")
