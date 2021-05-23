@@ -180,6 +180,26 @@ app.get('/get_ip', function(req, res){
 
 })
 
+app.post('/public_key', function (req, res) {
+  console.log("Start service ...")
+  const username = req.body.username
+  const public_key = req.body.public_key
+  var sql_set_pubkey = "UPDATE users SET public_key=? WHERE username=?"
+  DBconnect.get(sql_set_pubkey, [public_key, username], (err, row) => {
+    if (err) {
+      res.status(500).json({"msg":err.message})
+      return console.error(err.message)
+    }
+    if (row == undefined){
+      console.log(username + " that you want to talk not found.\n")
+      res.status(500).json({"msg": username + " that you want to talk not found."})
+    }
+    else {
+      console.log(username + " pub key is " + row.public_key + "\n")
+      res.status(200)
+    }
+  })
+})
 
 app.get('/public_key', function (req, res) {
   console.log("Start service ...")
@@ -199,7 +219,6 @@ app.get('/public_key', function (req, res) {
       res.status(row.public_key != null ? 200 : 500).json({"public_key": row.public_key})
     }
   })
-
 })
 
 
