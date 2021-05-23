@@ -110,7 +110,7 @@ app.post('/set_ip', async function (req, res){
 app.get('/get_ip', function(req, res){
   console.log("Get ip ...")
 
-  const {username_2, ip_address} = req.body
+  const {username_2} = req.body
 
   utils.getClient(res, req.body, () => {
     var sql_get_ip = "SELECT ip_address FROM users WHERE username=?"
