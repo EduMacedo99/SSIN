@@ -18,7 +18,7 @@ def prepare_request(config):
 
 
 def request_service(config):  
-    print("> Choose the desired service:")
+    print("\n> Choose the desired service:")
     print("     1 - Square root")
     print("     2 - Cubic root")
     print("     3 - Parametrized n-root")
@@ -47,8 +47,9 @@ def request_service(config):
     
     # If server response was ok
     if res.ok: 
-        print("> Service done with success.")
-
+        print("> Service done with success.\n")
+    else:
+        print("> Service failed.\n")
 
 def request_set_ip(config, ip):
     

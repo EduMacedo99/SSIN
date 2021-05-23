@@ -40,14 +40,15 @@ function checkSecurityLevel(req, res, callback) {
       callback()
     }
     else {
-      console.log("This user doesnt have permission to this service.\n")
-      res.status(500).json({"msg":"You don't have permission to this service"})
+      console.log("This user doesnt have permission to this service, service level " + service_data.service_id + " and client level " + security_level + ".\n")
+      res.status(500).json({"msg":"You don't have permission to this service, service level " + service_data.service_id + " and client level " + security_level + "."})
     }
   })
 }
 
 /**
  * Calculate value
+ * TODO: verificar se são mesmo numeros o radicand, index
  */
 function serviceResponse (req, res) {
   const { service_id, radicand, index } = req.body.service_data

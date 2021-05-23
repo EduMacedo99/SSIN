@@ -150,7 +150,6 @@ def main_menu(username, my_port, config):
     option = int(input("option: "))
     
     if option == 1:
-        print("")
         request_service(config)
         
     elif option == 2:
@@ -179,7 +178,6 @@ def main_menu(username, my_port, config):
         print("Invalid option\n")
         main_menu(username, my_port, config)
      
-    print("\n")
     main_menu(username, my_ip_port, config)
 
 def decrypt_and_read_dotenv():
@@ -258,14 +256,9 @@ try:
     (new_config, ip_port_tuple) = authentication()
 except:
     print("> Something went wrong.")
-    #TODO close program
     exit(-1)
     
-# TODO: Save in the env the new config
-# if not, the second login will not work
-
 #TODO Por dentro d euma função para desparguetar
-
 print('(2 KEY TO DECRYPT > ' + keyToDecrypt + ")")
 
 try:

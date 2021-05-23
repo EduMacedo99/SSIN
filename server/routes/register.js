@@ -80,7 +80,7 @@ app.post('/get_token', function (req, res) {
                 console.log("... token: " + token)
                 //**************************************************************************** */
                
-                //TODO -> criar um novo iv e enviá-lo juntamente com o enc_token
+                //TODO: criar um novo iv e enviá-lo juntamente com o enc_token
                 const enc_token = symmetric.encrypt(token, iv, symmetric_key);
                 //console.log("... enc_token: " + enc_token);
                 res.statusCode = 200;
