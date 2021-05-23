@@ -33,10 +33,12 @@ keyToDecrypt = ''
 saveEnv = []
 
 # TODO: After the session is done or something wrong happens,set the client as not available
-def close_client(value=0):
-    # Agora ao colocar "NOT_AVAILABLE", o server vai saber que nao está disponivel
-    print("> Set client as not available.")
-    request_set_ip(new_config, "NOT_AVAILABLE")
+def close_client(value=0, config=None):
+    if(config != None):
+        # Agora ao colocar "NOT_AVAILABLE", o server vai saber que nao está disponivel
+        print("> Set client as not available.")
+        request_set_ip(new_config, "NOT_AVAILABLE")
+        
     exit(value)
    
 def registration(username):

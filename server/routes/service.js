@@ -12,7 +12,7 @@ const utils = require("../utils")
  * TODO: Evitar SQL Injection
  */
 function checkSecurityLevel(req, res, callback) {
-  const { username, cl_token, new_iv, service_data} = req.body
+  const { username, cl_token, new_iv, service_id, radicand, index} = req.body
 
   console.log("... checking if username and token macthes DB.")
 
@@ -34,14 +34,30 @@ function checkSecurityLevel(req, res, callback) {
     }
     console.log("... valid username and token.")
 
+    // Decrypt  service_id
+    const dec_service_id = symmetric.decrypt(service_id, new_iv, symmetric_key)
+    console.log("... client choose service " + dec_service_id + ".")
+
     // Check security level
-    if (parseInt(service_data.service_id) <= security_level) {
-      console.log("... security level is ok, service level " + service_data.service_id + " and client level " + security_level + ".")
-      callback()
+    if (parseInt(dec_service_id) <= security_level) {
+      console.log("... security level is ok, service level " + dec_service_id + " and client level " + security_level + ".")
+
+      // Dcrypt service data
+      const dec_radicand = symmetric.decrypt(radicand, new_iv, symmetric_key)
+      let service_data = {"symmetric_key": symmetric_key, "id":dec_service_id, "radicand": dec_radicand}
+      if(dec_service_id == 3)
+        service_data["index"] = symmetric.decrypt(index, new_iv, symmetric_key)
+
+      callback(service_data)
     }
     else {
-      console.log("This user doesnt have permission to this service, service level " + service_data.service_id + " and client level " + security_level + ".\n")
-      res.status(500).json({"msg":"You don't have permission to this service, service level " + service_data.service_id + " and client level " + security_level + "."})
+      console.log("This user doesnt have permission to this service, service level " + dec_service_id + " and client level " + security_level + ".\n")
+      
+      // Encrypt msg
+      const new_iv_server = symmetric.createNewIV(utils.SIZE)
+      const enc_msg = symmetric.encrypt("You don't have permission to this service, service level " + dec_service_id + " and client level " + security_level + ".", new_iv_server, symmetric_key)
+
+      res.status(201).json({"msg": enc_msg, "new_iv":new_iv_server })
     }
   })
 }
@@ -50,11 +66,11 @@ function checkSecurityLevel(req, res, callback) {
  * Calculate value
  * TODO: verificar se são mesmo numeros o radicand, index
  */
-function serviceResponse (req, res) {
-  const { service_id, radicand, index } = req.body.service_data
+function serviceResponse (res, service_data) {
+  const { id, radicand, index, symmetric_key} = service_data
   var value
   var radicand_float = parseFloat(radicand)
-  switch (parseInt(service_id)) {
+  switch (parseInt(id)) {
     case 1:
       value = Math.sqrt(radicand_float)
       break
@@ -66,7 +82,12 @@ function serviceResponse (req, res) {
       break
   }
   console.log("Service done. Value = " + value + "\n")
-  res.status(200).json({"msg":"value = " + value})
+  
+  // Encrypt value msg
+  const new_iv_server = symmetric.createNewIV(utils.SIZE)
+  const enc_msg = symmetric.encrypt("value = " + value, new_iv_server, symmetric_key)
+  
+  res.status(200).json({"msg": enc_msg, "new_iv": new_iv_server})
 }
 
 /**
@@ -185,8 +206,8 @@ app.get('/public_key', function (req, res) {
 app.get('/', function (req, res) {
   console.log("Start service ...")
 
-    checkSecurityLevel(req, res, () => {
-      serviceResponse(req, res)
+    checkSecurityLevel(req, res, (service_data) => {
+      serviceResponse(res, service_data)
     })
 })
 

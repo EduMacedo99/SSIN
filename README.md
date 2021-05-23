@@ -69,3 +69,12 @@ Server Response:
 * not encrypted: new_iv, ip_port
 * encrypted: ip_port, succ_msg
 ---------------------------------------------
+---------------------------------------------
+Client service Request:
+* not encrypted: username, new_iv
+* encrypted: token, service_data
+
+Server Response:
+* not encrypted: new_iv
+* encrypted: succ_msg with the value
+---------------------------------------------

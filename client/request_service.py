@@ -24,37 +24,44 @@ def prepare_request(config, data):
 
 
 def request_service(config):  
+    if config == None:
+        raise ExceptionNoUsernameFound
+    
     print("\n> Choose the desired service:")
     print("     1 - Square root")
     print("     2 - Cubic root")
     print("     3 - Parametrized n-root")
     
-    service_id = int(input("Service: "))
+    service_id = input("Service: ")
     radicand = input("Choose the radicand: ")
     
-    service_data = {"service_id": service_id, "radicand":radicand }
+    data = {"service_id": service_id, "radicand":radicand }
     
-    if service_id == 3:
-        service_data["index"] = input("Choose Index: ")
-    elif service_id != 1 and service_id !=2:
+    if service_id == "3":
+        data["index"] = input("Choose Index: ")
+    elif service_id != "1" and service_id !="2":
         print("Invalid option:", service_id)
         return
-       
-    data = prepare_request(config, {})
-    data["msg"] = "Client choose service " + str(service_id) + ".",
-    data["service_data"] = service_data
-        
+    
     # Request service
     res = requests.get(SERVER_ADDRESS + "/service", 
-        json = data 
+        json = prepare_request(config, data)
     )
     res_content = res.json()
-    print("> Server: " + res_content["msg"])
     
     # If server response was ok
-    if res.ok: 
-        print("> Service done with success.\n")
+    if res.ok or res.status_code == 501: # or dont have permission
+        # Get new IV
+        iv_response = res_content["new_iv"]
+        # Decrypt msg
+        msg_response= symmetric_encryption.decrypt(res_content["msg"], iv_response.encode(), config["KEY"].encode())
+        print("> Server: " + msg_response)
+        if res.status_code != 501:
+            print("> Service done with success.\n")
+        else:
+            print("> Service failed.\n")
     else:
+        print("> Server: " + res_content["msg"])
         print("> Service failed.\n")
 
 
