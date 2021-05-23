@@ -158,6 +158,8 @@ def main_menu(username, my_port, config):
             address_and_port = request_get_ip(config, username_2)
             public_key = request_public_key(config, username_2)
             port = int(address_and_port.split(",")[1])
+            print(port)
+            print(public_key)
             message = input("Write your message:\n")
 
             cipher = PKCS1_OAEP.new(public_key)

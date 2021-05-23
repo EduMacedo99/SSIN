@@ -135,7 +135,7 @@ app.get('/get_ip', function(req, res){
 
 app.get('/public_key', function (req, res) {
   console.log("Start service ...")
-  const username_2 = req.params.username_2
+  const username_2 = req.body.username_2
   var sql_get_ip = "SELECT public_key FROM users WHERE username=?"
   DBconnect.get(sql_get_ip, [username_2], (err, row) => {
     if (err) {

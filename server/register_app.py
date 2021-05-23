@@ -10,14 +10,15 @@ def create_table(conn=sqlite3.connect(DATABASE_PATH)):
     conn.execute('''DROP TABLE IF EXISTS users;''')
     conn.execute('''
                  CREATE TABLE USERS (
-                     username CHAR[8] NOT NULL PRIMARY KEY, 
-                     security_level INT CHECK(3 >= security_level >= 1),
-                     one_time_id TEXT,
-                     ip_address TEXT,
-                     token TEXT,
-                     symmetric_key TEXT,
-                     challenge TEXT,
-                     challenge_timeout DATE
+                    username CHAR[8] NOT NULL PRIMARY KEY, 
+                    security_level INT CHECK(3 >= security_level >= 1) NOT NULL,
+                    one_time_id TEXT NOT NULL,
+                    ip_address TEXT,
+                    public_key TEXT,
+                    token TEXT,
+                    symmetric_key TEXT,
+                    challenge TEXT,
+                    challenge_timeout DATE
                  )
                  ''')
 
@@ -32,7 +33,7 @@ def new_user(username, security_level, one_time_id, conn=sqlite3.connect(DATABAS
                  + username + '", "'
                  + security_level + '", "'
                  + sha256(bytes(one_time_id, "ascii")).hexdigest() +
-                 '", null, null, null, null, null);')
+                 '", null, null, null, null, null, null);')
 
 
 def display_table(conn=sqlite3.connect(DATABASE_PATH)):
