@@ -4,26 +4,6 @@ import symmetric_encryption
 
 from utils import *
 
-# Return json data with username, cl_token and new_iv, and the other things in the data 
-def prepare_request(config, data):
-    
-    username = config["USERNAME"]
-    curr_token = config["TOKEN"]
-    symmetric_key = config["KEY"]
-    
-    # Encrypt token
-    symmetric_key_iv = symmetric_encryption.create_new_iv(SIZE)
-    enc_token = symmetric_encryption.encrypt(curr_token, symmetric_key_iv.encode(), symmetric_key.encode())
-    
-    res = {"username": username, "cl_token":enc_token, "new_iv": symmetric_key_iv}
-    
-    # Encrypt others
-    for i in data.keys():
-        res[i] = symmetric_encryption.encrypt(data[i], symmetric_key_iv.encode(), symmetric_key.encode())
-    
-    return res
-
-
 def request_service(config):  
     if config == None:
         raise ExceptionNoUsernameFound
@@ -116,19 +96,23 @@ def request_get_ip(config, username_2):
 
 
 def request_public_key(config, username_2):
-    data = prepare_request(config, {})
-    data["msg"] = "Client wants to know pub key of " + username_2
-    data["username_2"] = username_2
+    # Request public key of username_2
     res = requests.get(SERVER_ADDRESS + "/service/public_key",
-        json = data 
+        json =  prepare_request(config, {"username_2":username_2})  
     )
     res_content = res.json()
-    #print("> Server: " + res_content["msg"])
     
     # If server response was ok
     if res.ok: 
+        # Get new IV
+        iv_response = res_content["new_iv"]
+        # Decrypt msg and public key
+        msg_response= symmetric_encryption.decrypt(res_content["msg"], iv_response.encode(), config["KEY"].encode())
+        key_response= symmetric_encryption.decrypt(res_content["public_key"], iv_response.encode(), config["KEY"].encode())
+        print("> Server: " + msg_response)
         print("> Get public key with success.\n")
-        return  RSA.importKey(res_content["public_key"])
+        return  key_response
     else:
+        print("> Server: " + res_content["msg"])
         raise ExceptionUserNotFound
 

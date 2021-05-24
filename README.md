@@ -25,56 +25,75 @@
         2. Calculation of cubic  root (security level: 2)
         3. Paramaterized n-root (security level: 3)
     2. Send message
-    3. Wait for messages
 
 
 # Encrypt Process
 
 ## Registration
+---------------------------------------------
 
+---------------------------------------------
 ## Authentication
 ---------------------------------------------
-Client Challenge Request:
+### Client Challenge Request:
 * not encrypted: username, new_iv
-* encrypted: token, msg
+* encrypted: token, msg, TODO:**time**
 
-Server Response:
+### Server Response:
 * not encrypted: challenge, new_iv
 * encrypted: succ_msg
 ---------------------------------------------
-Client Challenge Solved Request:
+### Client Challenge Solved Request:
 * not encrypted: username, new_iv
-* encrypted: "challenge", ip_port
+* encrypted: "challenge", ip_port, TODO:**time**
 
-Server Response:
+### Server Response:
 * not encrypted: new_iv
 * encrypted: new_token, succ_msg
 ---------------------------------------------
 ## Services
 ---------------------------------------------
-Client set ip Request:
+### Client set ip Request:
 * not encrypted: username, new_iv
-* encrypted: token, ip_port
+* encrypted: token, ip_port, TODO:**time**
 
-Server Response:
+### Server Response:
 * not encrypted: new_iv
 * encrypted: succ_msg
 ---------------------------------------------
 ---------------------------------------------
-Client get ip Request:
+### Client get ip Request:
 * not encrypted: username, new_iv
-* encrypted: token, username_2
+* encrypted: token, username_2, TODO:**time**
 
-Server Response:
+### Server Response:
 * not encrypted: new_iv, ip_port
 * encrypted: ip_port, succ_msg
 ---------------------------------------------
 ---------------------------------------------
-Client service Request:
+### Client service Request:
 * not encrypted: username, new_iv
-* encrypted: token, service_data
+* encrypted: token, service_data, TODO:**time**
 
-Server Response:
+### Server Response:
 * not encrypted: new_iv
 * encrypted: succ_msg with the value
+---------------------------------------------
+---------------------------------------------
+### Client set public_key Request:
+* not encrypted: username, new_iv
+* encrypted: token, public_key, TODO:**time**
+
+### Server Response:
+* not encrypted: new_iv
+* encrypted: succ_msg
+---------------------------------------------
+---------------------------------------------
+### Client get public_key Request:
+* not encrypted: username, new_iv
+* encrypted: token, username_2, TODO:**time**
+
+### Server Response:
+* not encrypted: new_iv, ip_port
+* encrypted: public_key, succ_msg
 ---------------------------------------------

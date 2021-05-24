@@ -76,13 +76,12 @@ app.post('/get_token', function (req, res) {
                 console.log("... valid username and one time id.")
 
                 //criar um token
+                console.log("... creating token... ")
                 const token = Crypto.randomBytes(12).toString('base64').slice(0, 12);
-                console.log("... token: " + token)
                 //**************************************************************************** */
                
                 //TODO: criar um novo iv e enviá-lo juntamente com o enc_token
                 const enc_token = symmetric.encrypt(token, iv, symmetric_key);
-                //console.log("... enc_token: " + enc_token);
                 res.statusCode = 200;
                 res.json({
                     'token': enc_token,

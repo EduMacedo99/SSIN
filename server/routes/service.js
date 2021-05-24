@@ -36,11 +36,11 @@ function checkSecurityLevel(req, res, callback) {
 
     // Decrypt  service_id
     const dec_service_id = symmetric.decrypt(service_id, new_iv, symmetric_key)
-    console.log("... client choose service " + dec_service_id + ".")
+    //console.log("... client choose service " + dec_service_id + ".")
 
     // Check security level
     if (parseInt(dec_service_id) <= security_level) {
-      console.log("... security level is ok, service level " + dec_service_id + " and client level " + security_level + ".")
+      console.log("... security level is ok.")
 
       // Dcrypt service data
       const dec_radicand = symmetric.decrypt(radicand, new_iv, symmetric_key)
@@ -51,11 +51,11 @@ function checkSecurityLevel(req, res, callback) {
       callback(service_data)
     }
     else {
-      console.log("This user doesnt have permission to this service, service level " + dec_service_id + " and client level " + security_level + ".\n")
+      console.log("This user doesnt have permission to this service.\n")
       
       // Encrypt msg
       const new_iv_server = symmetric.createNewIV(utils.SIZE)
-      const enc_msg = symmetric.encrypt("You don't have permission to this service, service level " + dec_service_id + " and client level " + security_level + ".", new_iv_server, symmetric_key)
+      const enc_msg = symmetric.encrypt("You don't have permission to this service.", new_iv_server, symmetric_key)
 
       res.status(201).json({"msg": enc_msg, "new_iv":new_iv_server })
     }
@@ -122,12 +122,12 @@ app.post('/set_ip', async function (req, res){
           res.status(200).json({"msg": enc_msg, "new_iv": new_iv_server})
         }
         else if (this.changes > 0) {
-          console.log(`... Row(s) updated: ${this.changes}`)
-          console.log(username + " ip set to " + dec_ip + "\n")
+         // console.log(`... Row(s) updated: ${this.changes}`)
+          console.log(username + " ip was updated.\n")
 
           // Encrypt msg
           const new_iv_server = symmetric.createNewIV(utils.SIZE)
-          const enc_msg = symmetric.encrypt(username + " ip set to " + dec_ip, new_iv_server, client.symmetric_key)
+          const enc_msg = symmetric.encrypt(username + " ip was updated.", new_iv_server, client.symmetric_key)
 
           res.status(200).json({"msg": enc_msg, "new_iv": new_iv_server})
         }
@@ -160,19 +160,19 @@ app.get('/get_ip', function(req, res){
         return console.error(err.message)
       }
       if (row == undefined || row.ip_address == null){
-        console.log("The " + dec_username_2 + " you want to talk not found.\n")
-        res.status(500).json({"msg": "The client you want to talk not found."})
+        console.log(dec_username_2 + " not found.\n")
+        res.status(500).json({"msg": "client not found."})
       }
       else if (row.ip_address == "NOT_AVAILABLE"){
-        console.log(dec_username_2 + " ip is " + row.ip_address + "\n")
-        res.status(501).json({"msg": "The client you want to talk is not available right now."})
+        console.log(dec_username_2 + " ip is not available\n")
+        res.status(501).json({"msg": "client is not available right now."})
       }
       else {
         // Encrypt msg
         const new_iv_server = symmetric.createNewIV(utils.SIZE)
-        const enc_msg = symmetric.encrypt(dec_username_2 + " ip is " + row.ip_address, new_iv_server, client.symmetric_key)
+        const enc_msg = symmetric.encrypt(dec_username_2 + " ip was sent.", new_iv_server, client.symmetric_key)
         
-        console.log(dec_username_2 + " ip is " + row.ip_address + "\n")
+        console.log(dec_username_2 + " ip was sent.\n")
         res.status(200).json({"msg": enc_msg, "ip_port": row.ip_address, "new_iv": new_iv_server})
       }
     })
@@ -181,44 +181,76 @@ app.get('/get_ip', function(req, res){
 })
 
 app.post('/public_key', function (req, res) {
-  console.log("Start service ...")
-  const username = req.body.username
-  const public_key = req.body.public_key
-  var sql_set_pubkey = "UPDATE users SET public_key=? WHERE username=?"
-  DBconnect.get(sql_set_pubkey, [public_key, username], (err, row) => {
-    if (err) {
-      res.status(500).json({"msg":err.message})
-      return console.error(err.message)
-    }
-    if (row == undefined){
-      console.log(username + " that you want to talk not found.\n")
-      res.status(500).json({"msg": username + " that you want to talk not found."})
-    }
-    else {
-      console.log(username + " pub key is " + row.public_key + "\n")
-      res.status(200)
-    }
-  })
+  console.log("Set public key ...")
+
+  const {username, public_key, new_iv} = req.body
+
+  utils.getClient(res, req.body, (client) => {
+
+    // Decrypt public key
+    const dec_key = symmetric.decrypt(public_key, new_iv, client.symmetric_key)
+    console.log("... client " + username + " wants to set public key ")
+    
+    var sql_set_key = "UPDATE users SET public_key=? WHERE username=?"
+    DBconnect.run(sql_set_key, [dec_key, username], async function (err, row) {
+        if (err) {
+          res.status(500).json({"msg":err.message})
+          return console.error(err.message)
+        }
+        if (this.changes == 0){
+          console.log("No rows to update.\n")
+
+          // Encrypt msg
+          const new_iv_server = symmetric.createNewIV(utils.SIZE)
+          const enc_msg = symmetric.encrypt("No rows to update", new_iv_server, client.symmetric_key)
+
+          res.status(200).json({"msg": enc_msg, "new_iv": new_iv_server})
+        }
+        else if (this.changes > 0) {
+          //console.log(`... Row(s) updated: ${this.changes}`)
+          console.log(username + " public key was updated.\n")
+
+          // Encrypt msg
+          const new_iv_server = symmetric.createNewIV(utils.SIZE)
+          const enc_msg = symmetric.encrypt(username + " public key was updated.", new_iv_server, client.symmetric_key)
+
+          res.status(200).json({"msg": enc_msg, "new_iv": new_iv_server })
+        }
+      })
+    })
 })
 
 app.get('/public_key', function (req, res) {
-  console.log("Start service ...")
-  const username_2 = req.body.username_2
-  var sql_get_ip = "SELECT public_key FROM users WHERE username=?"
-  DBconnect.get(sql_get_ip, [username_2], (err, row) => {
-    if (err) {
-      res.status(500).json({"msg":err.message})
-      return console.error(err.message)
-    }
-    if (row == undefined){
-      console.log(username_2 + " that you want to talk not found.\n")
-      res.status(500).json({"msg": username_2 + " that you want to talk not found."})
-    }
-    else {
-      console.log(username_2 + " pub key is " + row.public_key + "\n")
-      res.status(row.public_key != null ? 200 : 500).json({"public_key": row.public_key})
-    }
+  console.log("Get public key ...")
+
+  const {username, username_2, new_iv} = req.body
+
+  utils.getClient(res, req.body, (client) => {
+    // Decrypt username_2
+    const dec_username_2 = symmetric.decrypt(username_2, new_iv, client.symmetric_key)
+    console.log("... client " + username + " wants to know pub key of " + dec_username_2)
+
+    var sql_get_key = "SELECT public_key FROM users WHERE username=?"
+    DBconnect.get(sql_get_key, [dec_username_2], (err, row) => {
+      if (err) {
+        res.status(500).json({"msg":err.message})
+        return console.error(err.message)
+      }
+      if (row == undefined || row.public_key == null){
+        console.log(dec_username_2 + " not found.\n")
+        res.status(500).json({"msg": "client not found."})
+      }
+      else {
+        // Encrypt msg
+        const new_iv_server = symmetric.createNewIV(utils.SIZE)
+        const enc_msg = symmetric.encrypt(dec_username_2 + " public key was sent.", new_iv_server, client.symmetric_key)
+        
+        console.log(dec_username_2 + " public key was sent.\n")
+        res.status(200).json({"msg": enc_msg, "public_key": row.public_key, "new_iv": new_iv_server})
+      }
+    })
   })
+
 })
 
 

@@ -260,8 +260,10 @@ def authentication():
         
 if user_is_registred() == False:
     registration()
+    print('\n> Creating private and public key...')
     save_key_pair()
-    request_set_pub_key(username)
+    print('\n> Update server of your new public key...')
+    request_set_pub_key(username, saveEnv)
     proceed = input("Do you want to proceed with login? [y|n]\n")
     if proceed == "n":
         print('> Exiting...\n')

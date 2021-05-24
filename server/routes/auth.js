@@ -47,7 +47,7 @@ app.get("/", function (req, res) {
 
       // Encrypt timeout and msg
       const new_iv = symmetric.createNewIV(utils.SIZE)
-      const enc_msg = symmetric.encrypt( username+ "? Prove it, challenge: " + N, new_iv, client.symmetric_key)
+      const enc_msg = symmetric.encrypt( username+ "? Prove it, a challenge was sent.", new_iv, client.symmetric_key)
 
       res.status(200).json({"msg": enc_msg, challenge: N, new_iv: new_iv})
 
@@ -96,7 +96,7 @@ app.get("/challengeRefreshToken", function (req, res) {
     const enc_msg = symmetric.encrypt("Okay, it is a match.", new_iv_server, symmetric_key)
     const enc_token = symmetric.encrypt( new_token, new_iv_server, symmetric_key)
 
-    console.log("... port: " + dec_ip_port + ", new_token: " + new_token)
+    console.log("... creating new token, update port in DB.")
 
     // Send new token to the client
     res.status(200).json({"msg":enc_msg, token: enc_token, "new_iv": new_iv_server})

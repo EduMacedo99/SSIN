@@ -3,6 +3,7 @@ import requests
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 
+import symmetric_encryption 
 from request_service import prepare_request
 from utils import *
 
@@ -16,17 +17,24 @@ def save_key_pair():
     with open("public.key", 'wb') as content_file:
         content_file.write(public_key.exportKey('OpenSSH'))
 
-def request_set_pub_key(username):
+def request_set_pub_key(username, key_token):
     with open("public.key", 'r') as content_file:
         public_key = content_file.read()
-    data = {"username":username, "public_key":public_key}
+    
+    config = {"USERNAME":username, "TOKEN":key_token[1], "KEY":key_token[0]}
     res = requests.post(SERVER_ADDRESS + "/service/public_key",
-        json = data 
+        json = prepare_request(config, {"public_key":public_key})
     )
     res_content = res.json()
-    print("> Server: " + str(res_content))
-
+    
+    # If server response was ok
     if res.ok: 
+        # Get new IV
+        iv_response = res_content["new_iv"]
+        # Decrypt msg
+        msg_response= symmetric_encryption.decrypt(res_content["msg"], iv_response.encode(), config["KEY"].encode())
+        print("> Server: " + msg_response)
         print("> Set Pub Key with success.\n")
     else:
+        print("> Server: " + res_content["msg"])
         print("> Error trying to set pub key.\n")
