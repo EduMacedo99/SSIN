@@ -14,7 +14,7 @@ const utils = require("../utils")
 function checkSecurityLevel(now, req, res, callback) {
   const { username, cl_token, new_iv, service_id, radicand, index, time} = req.body
 
-  console.log("... checking if username and token macthes DB")
+  console.log("... checking lifetime request and if username and token macthes DB")
 
   var sql = `SELECT * FROM users WHERE username = "`+ username +'"'
   DBconnect.get(sql, (err, row) => {
