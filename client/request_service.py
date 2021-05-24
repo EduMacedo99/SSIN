@@ -86,9 +86,10 @@ def request_get_ip(config, username_2):
         iv_response = res_content["new_iv"]
         # Decrypt msg
         msg_response= symmetric_encryption.decrypt(res_content["msg"], iv_response.encode(), config["KEY"].encode())
+        ip_response= symmetric_encryption.decrypt(res_content["ip_port"], iv_response.encode(), config["KEY"].encode())
         print("> Server: " + msg_response)
         print("> Get IP with success.\n")
-        return  res_content["ip_port"]
+        return  ip_response
     else:
         print("> Server: " + res_content["msg"])
         if res.status_code == 501:
@@ -113,8 +114,8 @@ def request_public_key(config, username_2):
         key_response= symmetric_encryption.decrypt(res_content["public_key"], iv_response.encode(), config["KEY"].encode())
         print("> Server: " + msg_response)
         print("> Get public key with success.\n")
-        print(key_response)
-        print(binascii.unhexlify(key_response))
+        # print(key_response)
+        # print(binascii.unhexlify(key_response))
         return RSA.importKey(binascii.unhexlify(key_response))
         #return RSA.importKey(key_response)
     else:
@@ -127,8 +128,8 @@ def request_set_pub_key(username, key_token):
         public_key = content_file.read()
     
     config = {"USERNAME":username, "TOKEN":key_token[1], "KEY":key_token[0]}
-    print(public_key)
-    print(str(binascii.hexlify(public_key))[2:-1])
+    # print(public_key)
+    # print(str(binascii.hexlify(public_key))[2:-1])
     res = requests.post(SERVER_ADDRESS + "/service/public_key",
         json = prepare_request(config, {"public_key":str(binascii.hexlify(public_key))[2:-1], "time": str(datetime.now())})
     )
