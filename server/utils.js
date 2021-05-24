@@ -1,6 +1,7 @@
 const sqlite3 = require('sqlite3');
 const DBconnect = require('./DBconnect.js').db
 const symmetric = require("./symmetric_encryption")
+const TIMEOUT = 10000
 
 /**
 * Save token and symmetric key in DB
@@ -47,7 +48,7 @@ function saveClientNewSession (username, token, ip_port) {
 /**
  * Get client data from the DB with username
  */
-function getClient(res, username, callback){
+function getOnlyClient(res, username, callback){
     const sql = `SELECT * FROM users WHERE username = "`+ username +'"'
     DBconnect.get(sql, (err, row) => {
         if (row == undefined){
@@ -59,9 +60,9 @@ function getClient(res, username, callback){
 }
 
 /**
- * Get client data from the DB with username if token is correct
+ * Get client data from the DB with username if token is correct and if the lifetime of the request is valid
  */
- function getClient(res, config, callback){
+ function getClient(now, time, res, config, callback){
     const { username, cl_token, new_iv} = config
 
     const sql = `SELECT * FROM users WHERE username = "`+ username +'"'
@@ -71,18 +72,28 @@ function getClient(res, username, callback){
           res.status(500).json({"msg":"User not found."})
         }
         else{ 
-            console.log("... checking if username and token macthes DB.")
-            // Check if username and token matches DB
-            const { symmetric_key, token} = row
-            // Decrypt  token
-            const token_decrypted = symmetric.decrypt(cl_token, new_iv, symmetric_key)
+            console.log("... checking lifetime request and if username and token macthes DB")
             
+            // Check if username and token matches DB and request lifetime
+            const { symmetric_key, token} = row
+
+            // Check request lifetime
+            const dec_time = symmetric.decrypt( time, new_iv, symmetric_key)
+            if(Date.parse(dec_time) + TIMEOUT < now){
+                console.log("Request lifetime expired.")
+                res.status(500).json({"msg":"Request lifetime expired."})
+                return
+            }
+            console.log("(test) Request made", now - Date.parse(dec_time), "ms ago.")
+           
+            // Ckeck token
+            const token_decrypted = symmetric.decrypt(cl_token, new_iv, symmetric_key)
             if(token != token_decrypted){
                 console.log("Token do not macth this username.")
                 res.status(500).json({"msg":"Token do not macth this username."})
                 return
             }
-            console.log("... valid username and token.")
+            console.log("... valid username and token")
             callback(row)
         }
     })
@@ -93,5 +104,7 @@ module.exports = {
     saveClientRegistration,
     saveChallenge,
     saveClientNewSession,
-    getClient
+    getOnlyClient,
+    getClient,
+    TIMEOUT
 }

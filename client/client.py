@@ -14,6 +14,7 @@ from getpass import getpass
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from threading import Thread
+from datetime import datetime
 
 from assymmetric_encryption import save_key_pair
 import symmetric_encryption
@@ -126,13 +127,15 @@ def server_reg(username, one_time_ID):
     encrypt_key = base64.b64encode(
         cipher.encrypt(symmetric_key.encode("utf-8")))
     encrypt_iv = base64.b64encode(cipher.encrypt(iv.encode('utf-8')))
+    encrypt_time = base64.b64encode(cipher.encrypt(str(datetime.now()).encode('utf-8')))
     token_encrypt = requests.post(
         SERVER_URL + "register/get_token",
         json={
             "ID_encrypt": one_time_ID_encrypt.decode(),
             "encrypt_key": encrypt_key.decode(),
             "encrypt_iv": encrypt_iv.decode(),
-            "username": username
+            "username": username,
+            "time": encrypt_time.decode(),
         },
     )
     # print(token_encrypt.status_code)
@@ -142,11 +145,14 @@ def server_reg(username, one_time_ID):
     elif token_encrypt.status_code == 401:
         print('Wrong oneTimeID')
         return saveEnv
+    elif token_encrypt.status_code == 500:
+        print('Request lifetime expired.')
+        return saveEnv
     else:
         token_encrypt = token_encrypt.json()
         # print("encrypted token: " + token_encrypt["token"])
         decrypted_token = symmetric_encryption.decrypt(
-            token_encrypt["token"], iv.encode(), symmetric_key.encode())
+            token_encrypt["token"], token_encrypt["new_iv"].encode(), symmetric_key.encode())
         # print("decryptedtoken: " + decrypted_token)
         print("> Server Registration was successfull!\n")
         saveEnv.append(symmetric_key)
@@ -258,8 +264,10 @@ def authentication():
         
 if user_is_registred() == False:
     registration()
+    print('\n> Creating private and public key...')
     save_key_pair()
-    request_set_pub_key(username)
+    print('\n> Update server of your new public key...')
+    request_set_pub_key(username, saveEnv)
     proceed = input("Do you want to proceed with login? [y|n]\n")
     if proceed == "n":
         print('> Exiting...\n')

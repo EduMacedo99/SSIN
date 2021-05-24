@@ -25,56 +25,91 @@
         2. Calculation of cubic  root (security level: 2)
         3. Paramaterized n-root (security level: 3)
     2. Send message
-    3. Wait for messages
 
 
 # Encrypt Process
 
 ## Registration
+---------------------------------------------
+### Client asks for server public key.
+
+### Server Response:
+* not encrypted: public_key
+---------------------------------------------
+---------------------------------------------
+### Client:
+* not encrypted: username
+* encrypted (rsa): one_time_id, new_iv, symmetric_key, time
+
+### Server Response:
+* not encrypted: **TODO:**new_iv
+* encrypted(symmetric): token
+---------------------------------------------
+
 
 ## Authentication
 ---------------------------------------------
-Client Challenge Request:
+### Client Challenge Request:
 * not encrypted: username, new_iv
-* encrypted: token, msg
+* encrypted(symmetric): token, msg, time
 
-Server Response:
+### Server Response:
 * not encrypted: challenge, new_iv
-* encrypted: succ_msg
+* encrypted(symmetric): succ_msg
 ---------------------------------------------
-Client Challenge Solved Request:
+### Client Challenge Solved Request:
 * not encrypted: username, new_iv
-* encrypted: "challenge", ip_port
+* encrypted(symmetric): "challenge", ip_port, time
 
-Server Response:
+### Server Response:
 * not encrypted: new_iv
-* encrypted: new_token, succ_msg
+* encrypted(symmetric): new_token, succ_msg
 ---------------------------------------------
+
+
 ## Services
 ---------------------------------------------
-Client set ip Request:
+### Client set ip Request:
 * not encrypted: username, new_iv
-* encrypted: token, ip_port
+* encrypted(symmetric): token, ip_port, time
 
-Server Response:
+### Server Response:
 * not encrypted: new_iv
-* encrypted: succ_msg
+* encrypted(symmetric): succ_msg
 ---------------------------------------------
 ---------------------------------------------
-Client get ip Request:
+### Client get ip Request:
 * not encrypted: username, new_iv
-* encrypted: token, username_2
+* encrypted(symmetric): token, username_2, time
 
-Server Response:
+### Server Response:
 * not encrypted: new_iv, ip_port
-* encrypted: ip_port, succ_msg
+* encrypted(symmetric): ip_port, succ_msg
 ---------------------------------------------
 ---------------------------------------------
-Client service Request:
+### Client service Request:
 * not encrypted: username, new_iv
-* encrypted: token, service_data
+* encrypted(symmetric): token, service_data, time
 
-Server Response:
+### Server Response:
 * not encrypted: new_iv
-* encrypted: succ_msg with the value
+* encrypted(symmetric): succ_msg with the value
+---------------------------------------------
+---------------------------------------------
+### Client set public_key Request:
+* not encrypted: username, new_iv
+* encrypted(symmetric): token, public_key, time
+
+### Server Response:
+* not encrypted: new_iv
+* encrypted(symmetric): succ_msg
+---------------------------------------------
+---------------------------------------------
+### Client get public_key Request:
+* not encrypted: username, new_iv
+* encrypted(symmetric): token, username_2, time
+
+### Server Response:
+* not encrypted: new_iv, ip_port
+* encrypted(symmetric): public_key, succ_msg
 ---------------------------------------------

@@ -1,30 +1,11 @@
 from Crypto.PublicKey import RSA
 import requests
-import base64
 import binascii
-
 import symmetric_encryption 
+from datetime import datetime
+
+import symmetric_encryption
 from utils import *
-
-# Return json data with username, cl_token and new_iv, and the other things in the data 
-def prepare_request(config, data):
-    
-    username = config["USERNAME"]
-    curr_token = config["TOKEN"]
-    symmetric_key = config["KEY"]
-    
-    # Encrypt token
-    symmetric_key_iv = symmetric_encryption.create_new_iv(SIZE)
-    enc_token = symmetric_encryption.encrypt(curr_token, symmetric_key_iv.encode(), symmetric_key.encode())
-    
-    res = {"username": username, "cl_token":enc_token, "new_iv": symmetric_key_iv}
-    
-    # Encrypt others
-    for i in data.keys():
-        res[i] = symmetric_encryption.encrypt(data[i], symmetric_key_iv.encode(), symmetric_key.encode())
-    
-    return res
-
 
 def request_service(config):  
     if config == None:
@@ -38,7 +19,7 @@ def request_service(config):
     service_id = input("Service: ")
     radicand = input("Choose the radicand: ")
     
-    data = {"service_id": service_id, "radicand":radicand }
+    data = {"service_id": service_id, "radicand":radicand, "time": str(datetime.now())}
     
     if service_id == "3":
         data["index"] = input("Choose Index: ")
@@ -74,7 +55,7 @@ def request_set_ip(config, ip):
     
     # Request to set ip
     res = requests.post(SERVER_ADDRESS + "/service/set_ip",
-        json = prepare_request(config, {"ip_address": ip})
+        json = prepare_request(config, {"ip_address": ip, "time": str(datetime.now())})
     )
     res_content = res.json()
     
@@ -96,7 +77,7 @@ def request_get_ip(config, username_2):
 
     # Request ip of username_2
     res = requests.get(SERVER_ADDRESS + "/service/get_ip",
-        json = prepare_request(config, {"username_2":username_2}) 
+        json = prepare_request(config, {"username_2":username_2, "time": str(datetime.now())}) 
     )
     res_content = res.json()
     
@@ -118,34 +99,45 @@ def request_get_ip(config, username_2):
 
 
 def request_public_key(config, username_2):
-    data = prepare_request(config, {})
-    data["msg"] = "Client wants to know pub key of " + username_2
-    data["username_2"] = username_2
+    # Request public key of username_2
     res = requests.get(SERVER_ADDRESS + "/service/public_key",
-        json = data 
+        json =  prepare_request(config, {"username_2":username_2, "time": str(datetime.now())})  
     )
     res_content = res.json()
-    #print("> Server: " + res_content["msg"])
     
     # If server response was ok
     if res.ok: 
+        # Get new IV
+        iv_response = res_content["new_iv"]
+        # Decrypt msg and public key
+        msg_response= symmetric_encryption.decrypt(res_content["msg"], iv_response.encode(), config["KEY"].encode())
+        key_response= symmetric_encryption.decrypt(res_content["public_key"], iv_response.encode(), config["KEY"].encode())
+        print("> Server: " + msg_response)
         print("> Get public key with success.\n")
-        return  RSA.importKey(binascii.unhexlify(res_content["public_key"]))
+        return  RSA.importKey(binascii.unhexlify(key_response))
     else:
+        print("> Server: " + res_content["msg"])
         raise ExceptionUserNotFound
 
-def request_set_pub_key(username):
+
+def request_set_pub_key(username, key_token):
     with open("public.key", 'rb') as content_file:
         public_key = content_file.read()
-    data = {"username":username, "public_key":str(binascii.hexlify(public_key))[2:-1]}
+    
+    config = {"USERNAME":username, "TOKEN":key_token[1], "KEY":key_token[0]}
     res = requests.post(SERVER_ADDRESS + "/service/public_key",
-        json = data 
+        json = prepare_request(config, {"public_key":str(binascii.hexlify(public_key))[2:-1], "time": str(datetime.now())})
     )
     res_content = res.json()
-    print("> Server: " + str(res_content))
-
+    
+    # If server response was ok
     if res.ok: 
+        # Get new IV
+        iv_response = res_content["new_iv"]
+        # Decrypt msg
+        msg_response= symmetric_encryption.decrypt(res_content["msg"], iv_response.encode(), config["KEY"].encode())
+        print("> Server: " + msg_response)
         print("> Set Pub Key with success.\n")
     else:
+        print("> Server: " + res_content["msg"])
         print("> Error trying to set pub key.\n")
-        
