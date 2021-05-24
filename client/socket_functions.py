@@ -25,8 +25,11 @@ def save_message(message, addr, key):
     else:
         f = open("log.txt", "x")
 
-    f.write('Message received' + ' at ' + current_time + '\n')
-    f.write('> ' + message.decode('UTF-8'))
+    sender_and_text = message.decode('UTF-8').split("\n")
+    sender = sender_and_text[0]
+    message_text = sender_and_text[1]
+    f.write('Message received' + ' at ' + current_time + ' from ' + sender + '\n')
+    f.write('> ' + message_text)
     f.write('\n')
     f.write('-----------------------------------\n')
     f.close()
@@ -69,7 +72,7 @@ def send_message(config):
         address_and_port = request_get_ip(config, username_2)
         port = int(address_and_port.split(":")[1])
         public_key = request_public_key(config, username_2)
-        message = input("Write your message:\n")
+        message = config["USERNAME"] + "\n" + input("Write your message:\n")
         cipher = PKCS1_OAEP.new(public_key)
         encrypted_message = base64.b64encode(
             cipher.encrypt(message.encode("utf-8")))
