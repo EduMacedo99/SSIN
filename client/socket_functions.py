@@ -27,7 +27,8 @@ def save_message(message, addr, key):
 
     f.write('Message received' + ' at ' + current_time + '\n')
     f.write('> ' + message.decode('UTF-8'))
-    f.write('\n\n')
+    f.write('\n')
+    f.write('-----------------------------------\n')
     f.close()
 
     pyAesCrypt.encryptFile("log.txt", "log.txt.aes", key)

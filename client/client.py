@@ -152,12 +152,34 @@ def server_reg(username, one_time_ID):
         saveEnv.append(decrypted_token)
         return saveEnv
 
+def read_messages():
+    global keyToDecrypt
+
+    try:
+        pyAesCrypt.decryptFile("log.txt.aes", "log.txt", keyToDecrypt)
+    except ValueError:
+        print('\n> No messages received yet :(')
+        return
+
+    f = open("log.txt", "r")
+    lines = f.readlines()
+    print('\n#################\n')
+    for line in lines:
+        print(line)
+    print('\n#################\n')
+    f.close()
+
+    os.remove('log.txt')
+    
+
+
 
 def main_menu(username, my_port, config):
     print("Options:")
     print("1 - Request service")
     print("2 - Send message")
-    print("3 - Exit")
+    print("3 - Check received messages")
+    print("4 - Exit")
     try:
         option = int(input("option: "))
         if option == 1:
@@ -165,6 +187,8 @@ def main_menu(username, my_port, config):
         elif option == 2:
             send_message(config)
         elif option == 3:
+            read_messages()
+        elif option == 4:
             print("> Exiting ...\n")
             return
         else:
@@ -173,10 +197,6 @@ def main_menu(username, my_port, config):
         print("Invalid option\n")     
     main_menu(username, my_ip_port, config)
 
-##########################
-
-
-###########################################
 def decrypt_and_read_dotenv():
     global keyToDecrypt
     counter = 0
