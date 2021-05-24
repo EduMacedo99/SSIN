@@ -55,6 +55,7 @@ def listen_socket(config, port, key):
         print("+ Waiting for messages in port "+str(port))
         while True:
             conn, addr = s.accept()
+            print("accept")
             with conn:
                 data = conn.recv(CIPHER_TEXT_LENGTH*10)
                 message = decrypt_long_message(data)
@@ -72,9 +73,13 @@ def send_message(config):
         port = int(address_and_port.split(":")[1])
         message = input("Write your message:\n")
         public_key = request_public_key(config, username_2)
+        print("public key")
+        print(public_key)
         complete_message_bytes = bytes(config["USERNAME"], "utf-8") + b"\n" + sign_message(bytes(message, "utf-8"))
         encrypted_message = encrypt_long_message(complete_message_bytes, public_key)
+        print("1")
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            print("with socket")
             s.connect((LOCALHOST, port))
             s.sendall(encrypted_message)
     except ConnectionRefusedError:
