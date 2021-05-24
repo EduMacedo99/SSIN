@@ -1,7 +1,9 @@
 from Crypto.PublicKey import RSA
 import requests
-import symmetric_encryption 
+import base64
+import binascii
 
+import symmetric_encryption 
 from utils import *
 
 # Return json data with username, cl_token and new_iv, and the other things in the data 
@@ -128,7 +130,7 @@ def request_public_key(config, username_2):
     # If server response was ok
     if res.ok: 
         print("> Get public key with success.\n")
-        return  RSA.importKey(res_content["public_key"])
+        return  RSA.importKey(binascii.unhexlify(res_content["public_key"]))
     else:
         raise ExceptionUserNotFound
 

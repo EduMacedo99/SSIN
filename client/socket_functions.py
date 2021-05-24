@@ -59,7 +59,7 @@ def encrypt_message(message_bytes, public_key):
     return encrypted_message
 
 def decrypt_message(message_bytes):
-    with open("private.key", 'r') as content_file:
+    with open("private.key", 'rb') as content_file:
         private_key = RSA.importKey(content_file.read())
     cipher = PKCS1_OAEP.new(private_key)
     decrypted_message = cipher.decrypt(base64.b64decode(message_bytes))
@@ -84,7 +84,7 @@ def decrypt_long_message(message_bytes):
     return decrypted_message
 
 def sign_message(message):
-    with open("private.key", 'r') as content_file:
+    with open("private.key", 'rb') as content_file:
         private_key = RSA.importKey(content_file.read())
     hash = SHA.new(message)
     #hash.update()
@@ -112,6 +112,20 @@ def check_signature(config, complete_message):
     print(hash.digest())
     print(signature)
     verified = verifier.verify(hash, signature)
+
+    """ apparently the problem is not here
+    with open("public.key", 'rb') as content_file:
+        local_pub_key = RSA.importKey(content_file.read())
+    print("local pub key")
+    print(local_pub_key.exportKey('OpenSSH'))
+    print("server pub key")
+    print(public_key.exportKey('OpenSSH'))
+    if local_pub_key.exportKey('OpenSSH') != public_key.exportKey('OpenSSH'):
+        print("We have a problem here")
+    else:
+        print("It's ok")
+    """
+
     print("VERIFIED")
     print(verified)
     return verified
