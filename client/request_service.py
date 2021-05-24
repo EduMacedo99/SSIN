@@ -111,7 +111,7 @@ def request_public_key(config, username_2):
         key_response= symmetric_encryption.decrypt(res_content["public_key"], iv_response.encode(), config["KEY"].encode())
         print("> Server: " + msg_response)
         print("> Get public key with success.\n")
-        return  key_response
+        return  RSA.importKey(key_response)
     else:
         print("> Server: " + res_content["msg"])
         raise ExceptionUserNotFound
