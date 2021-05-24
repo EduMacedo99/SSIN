@@ -17,6 +17,7 @@ from time import sleep
 
 CIPHER_TEXT_LENGTH = 344
 
+
 def save_message(message, addr, key):
 
     now = datetime.now()
@@ -63,7 +64,7 @@ def decrypt_message(message_bytes):
         private_key = RSA.importKey(content_file.read())
     cipher = PKCS1_OAEP.new(private_key)
     decrypted_message = cipher.decrypt(base64.b64decode(message_bytes))
-    print(decrypted_message)
+    #print(decrypted_message)
     return decrypted_message
 
 def encrypt_long_message(message_bytes, public_key):
@@ -90,44 +91,16 @@ def sign_message(message):
     #hash.update()
     signer = PKCS1_v1_5.new(private_key)
     signature = signer.sign(hash)
-    print("message to hash:")
-    print(message)
-    print(hash)
-    print(hash.digest())
-    print(signature)
     return message + b"\n" + signature
 
 def check_signature(config, complete_message):
-    #print(complete_message)
     message_parts = complete_message.split("\n".encode('utf-8'))
     sender, message_text = message_parts[0:2]
-    signature = b''.join(message_parts[2:])
+    signature = b'\n'.join(message_parts[2:])
     public_key = request_public_key(config, sender.decode('utf-8'))
     verifier = PKCS1_v1_5.new(public_key)
     hash = SHA.new(message_text)
-    #hash.update()
-    print("message to hash:")
-    print(message_text)
-    print(hash)
-    print(hash.digest())
-    print(signature)
     verified = verifier.verify(hash, signature)
-
-    """ apparently the problem is not here
-    with open("public.key", 'rb') as content_file:
-        local_pub_key = RSA.importKey(content_file.read())
-    print("local pub key")
-    print(local_pub_key.exportKey('OpenSSH'))
-    print("server pub key")
-    print(public_key.exportKey('OpenSSH'))
-    if local_pub_key.exportKey('OpenSSH') != public_key.exportKey('OpenSSH'):
-        print("We have a problem here")
-    else:
-        print("It's ok")
-    """
-
-    print("VERIFIED")
-    print(verified)
     return verified
 
 
@@ -143,10 +116,12 @@ def listen_socket(config, port, key):
             conn, addr = s.accept()
             with conn:
                 data = conn.recv(CIPHER_TEXT_LENGTH*10)
-                print('\n\n> New Message received from', addr, ' !\n')
                 message = decrypt_long_message(data)
-                check_signature(config, message)
-                save_message(message, addr, key)
+                if check_signature(config, message):
+                    print('\n\n> New Message received from', addr, ' !\n')
+                    save_message(message, addr, key)
+                else:
+                    print('\n\n> Discarding a message with invalid signature !\n')
 
 
 def send_message(config):
@@ -156,15 +131,8 @@ def send_message(config):
         port = int(address_and_port.split(":")[1])
         message = input("Write your message:\n")
         public_key = request_public_key(config, username_2)
-        #print("len(signed_message)")
-        #print(len(sign_message(bytes(message, "utf-8"))))
         complete_message_bytes = bytes(config["USERNAME"], "utf-8") + b"\n" + sign_message(bytes(message, "utf-8"))
-        #print("\nSIGNED MESSAGE:")
-        #print(complete_message_bytes.decode("utf-8"))
         encrypted_message = encrypt_long_message(complete_message_bytes, public_key)
-
-        #print("len(encrypted_message):")
-        #print(len(encrypted_message))
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((LOCALHOST, port))
             s.sendall(encrypted_message)
