@@ -254,12 +254,13 @@ app.get('/public_key', function (req, res) {
         res.status(500).json({"msg": "client not found."})
       }
       else {
-        // Encrypt msg
+        // Encrypt msg and public key
         const new_iv_server = symmetric.createNewIV(utils.SIZE)
         const enc_msg = symmetric.encrypt(dec_username_2 + " public key was sent.", new_iv_server, client.symmetric_key)
+        const enc_key = symmetric.encrypt(row.public_key, new_iv_server, client.symmetric_key)
         
         console.log(dec_username_2 + " public key was sent.\n")
-        res.status(200).json({"msg": enc_msg, "public_key": row.public_key, "new_iv": new_iv_server})
+        res.status(200).json({"msg": enc_msg, "public_key": enc_key, "new_iv": new_iv_server})
       }
     })
   })
