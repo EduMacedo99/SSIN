@@ -33,6 +33,7 @@ keyToDecrypt = ''
 
 # TODO: desparguetar isto
 saveEnv = []
+username =''
 
 # TODO: After the session is done or something wrong happens,set the client as not available
 def close_client(value=0, config=None):
@@ -43,11 +44,13 @@ def close_client(value=0, config=None):
         
     exit(value)
    
-def registration(username):
-    
+def registration():
+    global username
+
     print("\n> Start Registration.\n")
     
     counter_pw = 0
+    username = input("\nInsert the username you chose on the server registration:\n")
     ID = input('Insert the unique ID you were given in the server registration:\n')
 
     server_info = server_reg(username, ID)
@@ -158,7 +161,7 @@ def read_messages():
     try:
         pyAesCrypt.decryptFile("log.txt.aes", "log.txt", keyToDecrypt)
     except ValueError:
-        print('\n> No messages received yet :(')
+        print('\n> No messages received yet :(\n')
         return
 
     f = open("log.txt", "r")
@@ -166,7 +169,7 @@ def read_messages():
     print('\n#################\n')
     for line in lines:
         print(line)
-    print('\n#################\n')
+    print('#################\n')
     f.close()
 
     os.remove('log.txt')
@@ -174,7 +177,7 @@ def read_messages():
 
 
 
-def main_menu(username, my_port, config):
+def main_menu(my_port, config):
     print("Options:")
     print("1 - Request service")
     print("2 - Send message")
@@ -195,7 +198,7 @@ def main_menu(username, my_port, config):
             print("Invalid option\n")
     except ValueError:
         print("Invalid option\n")     
-    main_menu(username, my_ip_port, config)
+    main_menu(my_ip_port, config)
 
 def decrypt_and_read_dotenv():
     global keyToDecrypt
@@ -236,7 +239,7 @@ def decrypt_and_read_dotenv():
     #print(config)
     return config
 
-def user_is_registred(username):
+def user_is_registred():
     # ver se .env.aes existe - se não existir é pq nao houve registo
     # TODO: criar folders para cada cliente ou qq coisa, assim depois de 1 cliente estar registrado, o proximo vai dar true mesmo n estando
     return path.exists(".env.aes")
@@ -254,13 +257,9 @@ def authentication():
     return auth.authentication_server(dotenv_config, SERVER_URL, SIZE) 
 
 ########################################################### MAIN SCRIPT ###########################################################
-
-
-
-username = input("\nInsert the username you chose on the server registration:\n")
         
-if user_is_registred(username) == False:
-    registration(username)
+if user_is_registred() == False:
+    registration()
     save_key_pair()
     request_set_pub_key(username)
     proceed = input("Do you want to proceed with login? [y|n]\n")
@@ -311,7 +310,7 @@ print("> client session address: " + my_ip_port)
 # TODO: Como andar de um lado para o outro sem estar sempre a pedir password?
 # agora está a dar o new_config que veio na autenticação e assim nao pede
 request_set_ip(new_config, my_ip_port)
-main_menu(username, my_ip_port, new_config)
+main_menu(my_ip_port, new_config)
 
 close_client()
 

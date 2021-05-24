@@ -33,6 +33,12 @@ def save_message(message, addr, key):
 
     pyAesCrypt.encryptFile("log.txt", "log.txt.aes", key)
     os.remove("log.txt")
+    print("Options:")
+    print("1 - Request service")
+    print("2 - Send message")
+    print("3 - Check received messages")
+    print("4 - Exit")
+    print("option:")
 
 def decrypt_message(message):
     with open("private.key", 'r') as content_file:
@@ -52,10 +58,8 @@ def listen_socket(port, key):
             conn, addr = s.accept()
             with conn:
                 data = conn.recv(1024)
-                print('\n+ Received message from', addr)
-                print("Message:")
+                print('\n\n> New Message received from', addr, ' !\n')
                 message = decrypt_message(data)
-                print('> New Message reeived !\n')
                 save_message(message, addr, key)
 
 
