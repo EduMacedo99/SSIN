@@ -134,3 +134,18 @@ def request_public_key(config, username_2):
     else:
         raise ExceptionUserNotFound
 
+def request_set_pub_key(username):
+    with open("public.key", 'rb') as content_file:
+        public_key = content_file.read()
+    data = {"username":username, "public_key":str(binascii.hexlify(public_key))[2:-1]}
+    res = requests.post(SERVER_ADDRESS + "/service/public_key",
+        json = data 
+    )
+    res_content = res.json()
+    print("> Server: " + str(res_content))
+
+    if res.ok: 
+        print("> Set Pub Key with success.\n")
+    else:
+        print("> Error trying to set pub key.\n")
+        

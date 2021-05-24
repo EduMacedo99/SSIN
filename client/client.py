@@ -14,15 +14,13 @@ from getpass import getpass
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from threading import Thread
-import socket
-import ast
 
-from gen_key import save_key_pair, request_set_pub_key
+from assymmetric_encryption import save_key_pair
 import symmetric_encryption
 import auth
 from request_service import ExceptionUserNotFound
-from socket_functions import listen_socket, send_message
-from request_service import request_service, request_set_ip, request_get_ip, request_public_key
+from messages import listen_socket, send_message
+from request_service import request_service, request_set_ip, request_get_ip, request_public_key, request_set_pub_key
 from utils import *
 
 SERVER_KEY_PATH = "resources/server_public.pem"
