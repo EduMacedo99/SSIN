@@ -301,7 +301,7 @@ os.remove('.env')
 print("> Authentication done.\n")
 
 port = int(my_ip_port.split(":")[1])
-listener_thread = Thread(target=listen_socket, args=(port, keyToDecrypt))
+listener_thread = Thread(target=listen_socket, args=(new_config, port, keyToDecrypt))
 listener_thread.daemon = True
 listener_thread.start()
 
