@@ -71,7 +71,7 @@
 ---------------------------------------------
 ### Client set ip Request:
 * not encrypted: username, new_iv
-* encrypted(symmetric): token, ip_port, **TODO:**time
+* encrypted(symmetric): token, ip_port, time
 
 ### Server Response:
 * not encrypted: new_iv
@@ -80,7 +80,7 @@
 ---------------------------------------------
 ### Client get ip Request:
 * not encrypted: username, new_iv
-* encrypted(symmetric): token, username_2, **TODO:**time
+* encrypted(symmetric): token, username_2, time
 
 ### Server Response:
 * not encrypted: new_iv, ip_port
@@ -89,7 +89,7 @@
 ---------------------------------------------
 ### Client service Request:
 * not encrypted: username, new_iv
-* encrypted(symmetric): token, service_data, **TODO:**time
+* encrypted(symmetric): token, service_data, time
 
 ### Server Response:
 * not encrypted: new_iv
@@ -98,7 +98,7 @@
 ---------------------------------------------
 ### Client set public_key Request:
 * not encrypted: username, new_iv
-* encrypted(symmetric): token, public_key, **TODO:**time
+* encrypted(symmetric): token, public_key, time
 
 ### Server Response:
 * not encrypted: new_iv
@@ -107,7 +107,7 @@
 ---------------------------------------------
 ### Client get public_key Request:
 * not encrypted: username, new_iv
-* encrypted(symmetric): token, username_2,**TODO:**time
+* encrypted(symmetric): token, username_2, time
 
 ### Server Response:
 * not encrypted: new_iv, ip_port
