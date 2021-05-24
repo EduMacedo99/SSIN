@@ -154,7 +154,7 @@ def server_reg(username, one_time_ID):
         token_encrypt = token_encrypt.json()
         # print("encrypted token: " + token_encrypt["token"])
         decrypted_token = symmetric_encryption.decrypt(
-            token_encrypt["token"], iv.encode(), symmetric_key.encode())
+            token_encrypt["token"], token_encrypt["new_iv"].encode(), symmetric_key.encode())
         # print("decryptedtoken: " + decrypted_token)
         print("> Server Registration was successfull!\n")
         saveEnv.append(symmetric_key)

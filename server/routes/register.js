@@ -57,8 +57,11 @@ app.post('/get_token', function (req, res) {
     // console.log("key: " + symmetric_key);
     // console.log("iv: " + iv);
     console.log("... checking if username and one time id macthes DB")
-
+    
     const sql_confirm_ID = "SELECT one_time_id FROM users WHERE username=?"
+    // TODO:
+    //var stmt = DB.db.prepare(sql_confirm_ID);
+    //stmt.get([username], (err, row) => {
     DB.db.get(sql_confirm_ID, [username], (err, row) => {
         if (err) {
             console.log("Error accessing database")
@@ -68,7 +71,7 @@ app.post('/get_token', function (req, res) {
             console.log("Wrong username.\n")
             res.statusCode = 404;
             res.json({
-                'message': 'User not found',
+                    'message': 'User not found',
             });
             return;
         }
@@ -91,12 +94,14 @@ app.post('/get_token', function (req, res) {
                 console.log("... creating token... ")
                 const token = Crypto.randomBytes(12).toString('base64').slice(0, 12);
                 //**************************************************************************** */
-               
+                
                 //TODO: criar um novo iv e enviá-lo juntamente com o enc_token
-                const enc_token = symmetric.encrypt(token, iv, symmetric_key);
-                res.statusCode = 200;
+                const new_iv_server = symmetric.createNewIV(utils.SIZE)
+                const enc_token = symmetric.encrypt( token, new_iv_server, symmetric_key)
+                 res.statusCode = 200;
                 res.json({
                     'token': enc_token,
+                    'new_iv': new_iv_server
                 });
                 console.log("... saving new token and symmetric key in DB")
                 utils.saveClientRegistration(username, token, symmetric_key);
