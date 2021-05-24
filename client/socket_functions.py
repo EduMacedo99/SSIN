@@ -4,8 +4,34 @@ from utils import *
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 import base64
+import os 
+import pyAesCrypt
+from os import path
+from datetime import datetime
 
+def save_message(message, addr, key):
 
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+
+    if path.exists('log.txt.aes'):
+        try:
+            pyAesCrypt.decryptFile("log.txt.aes", "log.txt", key)
+            os.remove('log.txt.aes')
+        except ValueError:
+            print('Was not able to decrypt the file')
+        
+        f = open("log.txt", "a")
+    else:
+        f = open("log.txt", "x")
+
+    f.write('Message received' + ' at ' + current_time + '\n')
+    f.write('> ' + message.decode('UTF-8'))
+    f.write('\n\n')
+    f.close()
+
+    pyAesCrypt.encryptFile("log.txt", "log.txt.aes", key)
+    os.remove("log.txt")
 
 def decrypt_message(message):
     with open("private.key", 'r') as content_file:
@@ -15,7 +41,7 @@ def decrypt_message(message):
     return message
 
 
-def listen_socket(port):
+def listen_socket(port, key):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((LOCALHOST, port))
@@ -28,8 +54,8 @@ def listen_socket(port):
                 print('\n+ Received message from', addr)
                 print("Message:")
                 message = decrypt_message(data)
-                print(message)
-                # TODO: encrypt and store message
+                print('> New Message reeived !\n')
+                save_message(message, addr, key)
 
 
 def send_message(config):

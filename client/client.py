@@ -173,6 +173,10 @@ def main_menu(username, my_port, config):
         print("Invalid option\n")     
     main_menu(username, my_ip_port, config)
 
+##########################
+
+
+###########################################
 def decrypt_and_read_dotenv():
     global keyToDecrypt
     counter = 0
@@ -278,7 +282,7 @@ os.remove('.env')
 print("> Authentication done.\n")
 
 port = int(my_ip_port.split(":")[1])
-listener_thread = Thread(target=listen_socket, args=(port,))
+listener_thread = Thread(target=listen_socket, args=(port, keyToDecrypt))
 listener_thread.daemon = True
 listener_thread.start()
 

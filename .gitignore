@@ -6,6 +6,8 @@
 .env
 .env.aes
 *.key
+client/log.txt
+client/log.txt.aes
 
 # User-specific files
 *.rsuser
