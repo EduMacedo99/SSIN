@@ -11,10 +11,10 @@ const utils = require("../utils")
  * 
  * TODO: Evitar SQL Injection
  */
-function checkSecurityLevel(req, res, callback) {
-  const { username, cl_token, new_iv, service_id, radicand, index} = req.body
+function checkSecurityLevel(now, req, res, callback) {
+  const { username, cl_token, new_iv, service_id, radicand, index, time} = req.body
 
-  console.log("... checking if username and token macthes DB.")
+  console.log("... checking if username and token macthes DB")
 
   var sql = `SELECT * FROM users WHERE username = "`+ username +'"'
   DBconnect.get(sql, (err, row) => {
@@ -25,6 +25,15 @@ function checkSecurityLevel(req, res, callback) {
     }
     const { symmetric_key, token, security_level} = row
 
+    // Check request lifetime
+    const dec_time = symmetric.decrypt( time, new_iv, symmetric_key)
+    if(Date.parse(dec_time) + utils.TIMEOUT < now){
+      console.log("Request lifetime expired.")
+      res.status(500).json({"msg":"Request lifetime expired."})
+      return
+    }
+    console.log("(test) Request made", now - Date.parse(dec_time), "ms ago.")
+
     // Decrypt  token
     const token_decrypted = symmetric.decrypt(cl_token, new_iv, symmetric_key)
     if(token != token_decrypted){
@@ -32,7 +41,7 @@ function checkSecurityLevel(req, res, callback) {
       res.status(500).json({"msg":"Token do not macth this username."})
       return
     }
-    console.log("... valid username and token.")
+    console.log("... valid username and token")
 
     // Decrypt  service_id
     const dec_service_id = symmetric.decrypt(service_id, new_iv, symmetric_key)
@@ -40,7 +49,7 @@ function checkSecurityLevel(req, res, callback) {
 
     // Check security level
     if (parseInt(dec_service_id) <= security_level) {
-      console.log("... security level is ok.")
+      console.log("... security level is ok")
 
       // Dcrypt service data
       const dec_radicand = symmetric.decrypt(radicand, new_iv, symmetric_key)
@@ -97,14 +106,15 @@ function serviceResponse (res, service_data) {
  * TODO: Evitar SQL Injection
  */
 app.post('/set_ip', async function (req, res){
+  const now = Date.now()
   console.log("Set ip ...")
-  const {username, ip_address, new_iv} = req.body
+  const {username, ip_address, new_iv, time} = req.body
 
-  utils.getClient(res, req.body, (client) => {
+  utils.getClient(now, time, res, req.body, (client) => {
 
     // Decrypt ip
     const dec_ip = symmetric.decrypt(ip_address, new_iv, client.symmetric_key)
-    console.log("... client " + username + " wants to set a new ip " + dec_ip )
+    console.log("... client " + username + " wants to set a new ip")
 
     var sql_set_ip = "UPDATE users SET ip_address=? WHERE username=?"
     DBconnect.run(sql_set_ip, [dec_ip, username], async function (err, row) {
@@ -143,11 +153,12 @@ app.post('/set_ip', async function (req, res){
  * TODO: Evitar SQL Injection
  */
 app.get('/get_ip', function(req, res){
+  const now = Date.now()
   console.log("Get ip ...")
 
-  const {username, username_2, new_iv} = req.body
+  const {username, username_2, new_iv, time} = req.body
 
-  utils.getClient(res, req.body, (client) => {
+  utils.getClient(now, time, res, req.body, (client) => {
 
     // Decrypt username_2
     const dec_username_2 = symmetric.decrypt(username_2, new_iv, client.symmetric_key)
@@ -181,11 +192,12 @@ app.get('/get_ip', function(req, res){
 })
 
 app.post('/public_key', function (req, res) {
+  const now = Date.now()
   console.log("Set public key ...")
 
-  const {username, public_key, new_iv} = req.body
+  const {username, public_key, new_iv, time} = req.body
 
-  utils.getClient(res, req.body, (client) => {
+  utils.getClient(now, time, res, req.body, (client) => {
 
     // Decrypt public key
     const dec_key = symmetric.decrypt(public_key, new_iv, client.symmetric_key)
@@ -221,11 +233,12 @@ app.post('/public_key', function (req, res) {
 })
 
 app.get('/public_key', function (req, res) {
+  const now = Date.now()
   console.log("Get public key ...")
 
-  const {username, username_2, new_iv} = req.body
+  const {username, username_2, new_iv, time} = req.body
 
-  utils.getClient(res, req.body, (client) => {
+  utils.getClient(now, time, res, req.body, (client) => {
     // Decrypt username_2
     const dec_username_2 = symmetric.decrypt(username_2, new_iv, client.symmetric_key)
     console.log("... client " + username + " wants to know pub key of " + dec_username_2)
@@ -255,9 +268,10 @@ app.get('/public_key', function (req, res) {
 
 
 app.get('/', function (req, res) {
+  const now = Date.now()
   console.log("Start service ...")
 
-    checkSecurityLevel(req, res, (service_data) => {
+    checkSecurityLevel(now, req, res, (service_data) => {
       serviceResponse(res, service_data)
     })
 })

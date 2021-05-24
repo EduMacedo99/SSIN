@@ -74,7 +74,7 @@ def authentication_server(config, server_ip_url, size):
             curr_token = symmetric_encryption.decrypt(res_content["token"], iv_response.encode(), symmetric_key.encode())
             
             config["TOKEN"] = curr_token;
-            print("> Refresh token done: " + curr_token)
+            print("> Refresh token done.")
             
             return (config, ip_port)
 

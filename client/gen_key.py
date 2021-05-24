@@ -2,6 +2,7 @@ from os import chmod
 import requests
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
+from datetime import datetime
 
 import symmetric_encryption 
 from request_service import prepare_request
@@ -23,7 +24,7 @@ def request_set_pub_key(username, key_token):
     
     config = {"USERNAME":username, "TOKEN":key_token[1], "KEY":key_token[0]}
     res = requests.post(SERVER_ADDRESS + "/service/public_key",
-        json = prepare_request(config, {"public_key":public_key})
+        json = prepare_request(config, {"public_key":public_key, "time": str(datetime.now())})
     )
     res_content = res.json()
     

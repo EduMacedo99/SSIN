@@ -1,6 +1,7 @@
 from Crypto.PublicKey import RSA
 import requests
 import symmetric_encryption 
+from datetime import datetime
 
 from utils import *
 
@@ -16,7 +17,7 @@ def request_service(config):
     service_id = input("Service: ")
     radicand = input("Choose the radicand: ")
     
-    data = {"service_id": service_id, "radicand":radicand }
+    data = {"service_id": service_id, "radicand":radicand, "time": str(datetime.now())}
     
     if service_id == "3":
         data["index"] = input("Choose Index: ")
@@ -52,7 +53,7 @@ def request_set_ip(config, ip):
     
     # Request to set ip
     res = requests.post(SERVER_ADDRESS + "/service/set_ip",
-        json = prepare_request(config, {"ip_address": ip})
+        json = prepare_request(config, {"ip_address": ip, "time": str(datetime.now())})
     )
     res_content = res.json()
     
@@ -74,7 +75,7 @@ def request_get_ip(config, username_2):
 
     # Request ip of username_2
     res = requests.get(SERVER_ADDRESS + "/service/get_ip",
-        json = prepare_request(config, {"username_2":username_2}) 
+        json = prepare_request(config, {"username_2":username_2, "time": str(datetime.now())}) 
     )
     res_content = res.json()
     
@@ -98,7 +99,7 @@ def request_get_ip(config, username_2):
 def request_public_key(config, username_2):
     # Request public key of username_2
     res = requests.get(SERVER_ADDRESS + "/service/public_key",
-        json =  prepare_request(config, {"username_2":username_2})  
+        json =  prepare_request(config, {"username_2":username_2, "time": str(datetime.now())})  
     )
     res_content = res.json()
     

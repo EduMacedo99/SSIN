@@ -12,22 +12,12 @@ const utils = require("../utils")
  */
 app.get("/", function (req, res) {
     const now = Date.now()
-    const { username, time, new_iv } = req.body
+    const { username, time } = req.body
 
     console.log("Start of authentication ...")
-    console.log("... client: " + "I'm username " + username + ".")
+    console.log("... client: " + "I'm username " + username)
 
-    utils.getClient(res, req.body, (client) => {
-
-      // Check request lifetime
-      const timeout = symmetric.decrypt( time, new_iv, client.symmetric_key)
-      if(Date.parse(timeout) + utils.TIMEOUT < now){
-          console.log("Request lifetime expired.")
-          res.status(500).json({"msg":"Request lifetime expired."})
-          return
-      }
-      console.log("(test) Request made", now - Date.parse(timeout), "ms ago.")
-
+    utils.getClient(now, time, res, req.body, (client) => {
       // Generate challenge, a unique random value
       const N = Crypto.randomBytes(32).toString("hex")
 
@@ -55,7 +45,7 @@ app.get("/", function (req, res) {
 app.get("/challengeRefreshToken", function (req, res) {
   const now = Date.now()
   const { username, enc_challenge, ip_port, new_iv, time} = req.body
-  console.log("... client: Challenge solved.")
+  console.log("... client: Challenge solved")
 
   // Verify if is correct
   // Get symmetric key and encrypted challenge from DB, + timeout
@@ -102,7 +92,7 @@ app.get("/challengeRefreshToken", function (req, res) {
     const enc_msg = symmetric.encrypt("Okay, it is a match.", new_iv_server, symmetric_key)
     const enc_token = symmetric.encrypt( new_token, new_iv_server, symmetric_key)
 
-    console.log("... creating new token, update port in DB.")
+    console.log("... creating new token, update port in DB")
 
     // Send new token to the client
     res.status(200).json({"msg":enc_msg, token: enc_token, "new_iv": new_iv_server})

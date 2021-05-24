@@ -56,7 +56,7 @@ app.post('/get_token', function (req, res) {
     // console.log("username: " + username);
     // console.log("key: " + symmetric_key);
     // console.log("iv: " + iv);
-    console.log("... checking if username and one time id macthes DB.")
+    console.log("... checking if username and one time id macthes DB")
 
     const sql_confirm_ID = "SELECT one_time_id FROM users WHERE username=?"
     DB.db.get(sql_confirm_ID, [username], (err, row) => {
@@ -85,7 +85,7 @@ app.post('/get_token', function (req, res) {
                 return;
             }
             else {
-                console.log("... valid username and one time id.")
+                console.log("... valid username and one time id")
 
                 //criar um token
                 console.log("... creating token... ")
