@@ -16,6 +16,7 @@ from Crypto.PublicKey import RSA
 from threading import Thread
 import socket
 import ast
+from datetime import datetime
 
 from gen_key import save_key_pair, request_set_pub_key
 import symmetric_encryption
@@ -128,13 +129,15 @@ def server_reg(username, one_time_ID):
     encrypt_key = base64.b64encode(
         cipher.encrypt(symmetric_key.encode("utf-8")))
     encrypt_iv = base64.b64encode(cipher.encrypt(iv.encode('utf-8')))
+    encrypt_time = base64.b64encode(cipher.encrypt(str(datetime.now()).encode('utf-8')))
     token_encrypt = requests.post(
         SERVER_URL + "register/get_token",
         json={
             "ID_encrypt": one_time_ID_encrypt.decode(),
             "encrypt_key": encrypt_key.decode(),
             "encrypt_iv": encrypt_iv.decode(),
-            "username": username
+            "username": username,
+            "time": encrypt_time.decode(),
         },
     )
     # print(token_encrypt.status_code)
@@ -143,6 +146,9 @@ def server_reg(username, one_time_ID):
         return saveEnv
     elif token_encrypt.status_code == 401:
         print('Wrong oneTimeID')
+        return saveEnv
+    elif token_encrypt.status_code == 500:
+        print('Request lifetime expired.')
         return saveEnv
     else:
         token_encrypt = token_encrypt.json()

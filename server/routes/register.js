@@ -27,8 +27,18 @@ app.get('/', function (req, res) {
 });
 
 app.post('/get_token', function (req, res) {
-
+    const now = Date.now()
     console.log("\nStart of Registration ...")
+        
+    // Check request lifetime
+    const enc_time = req.body.time;
+    const timeout = assymetric_decrypt(enc_time);
+    if(Date.parse(timeout) + utils.TIMEOUT < now){
+        console.log("Request lifetime expired.")
+        res.status(500).json({"msg":"Request lifetime expired."})
+        return
+    }
+    console.log("(test) Request made", now - Date.parse(timeout), "ms ago.")
 
     const enc_ID = req.body.ID_encrypt;
     const enc_iv = req.body.encrypt_iv;
@@ -55,6 +65,7 @@ app.post('/get_token', function (req, res) {
             return;
         } 
         else if (row == undefined) {
+            console.log("Wrong username.\n")
             res.statusCode = 404;
             res.json({
                 'message': 'User not found',
@@ -66,6 +77,7 @@ app.post('/get_token', function (req, res) {
             let onetimeIdHash = sha256(onetimeID)
             //console.log("SQL > " + row.one_time_id + '\n > Client > ' + sha256(onetimeID))
             if (row.one_time_id != onetimeIdHash) {
+                console.log("Wrong one time ID.\n")
                 res.statusCode = 401;
                 res.json({
                     'message': 'Wrong one_time _ID',

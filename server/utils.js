@@ -1,6 +1,7 @@
 const sqlite3 = require('sqlite3');
 const DBconnect = require('./DBconnect.js').db
 const symmetric = require("./symmetric_encryption")
+const TIMEOUT = 10000
 
 /**
 * Save token and symmetric key in DB
@@ -47,7 +48,7 @@ function saveClientNewSession (username, token, ip_port) {
 /**
  * Get client data from the DB with username
  */
-function getClient(res, username, callback){
+function getOnlyClient(res, username, callback){
     const sql = `SELECT * FROM users WHERE username = "`+ username +'"'
     DBconnect.get(sql, (err, row) => {
         if (row == undefined){
@@ -93,5 +94,7 @@ module.exports = {
     saveClientRegistration,
     saveChallenge,
     saveClientNewSession,
-    getClient
+    getOnlyClient,
+    getClient,
+    TIMEOUT
 }
