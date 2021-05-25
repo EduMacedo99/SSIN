@@ -9,7 +9,6 @@ const utils = require("../utils")
  * Check if client has permission to this service by checking their security level
  * If they have, call callback
  * 
- * TODO: Evitar SQL Injection
  */
 function checkSecurityLevel(now, req, res, callback) {
   const { username, cl_token, new_iv, service_id, radicand, index, time} = req.body
@@ -73,7 +72,6 @@ function checkSecurityLevel(now, req, res, callback) {
 
 /**
  * Calculate value
- * TODO: verificar se são mesmo numeros o radicand, index
  */
 function serviceResponse (res, service_data) {
   const { id, radicand, index, symmetric_key} = service_data
@@ -102,8 +100,6 @@ function serviceResponse (res, service_data) {
 /**
  * Check if username and token are valid
  * Update IP address of the client in the DB
- * 
- * TODO: Evitar SQL Injection
  */
 app.post('/set_ip', async function (req, res){
   const now = Date.now()
@@ -150,7 +146,6 @@ app.post('/set_ip', async function (req, res){
  * Check if username and token are valid
  * Return ip or "USER_NOT_FOUND"
  * 
- * TODO: Evitar SQL Injection
  */
 app.get('/get_ip', function(req, res){
   const now = Date.now()

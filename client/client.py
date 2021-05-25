@@ -31,11 +31,11 @@ SIZE = 16
 
 keyToDecrypt = ''
 
-# TODO: desparguetar isto
+
 saveEnv = []
 username =''
 
-# TODO: After the session is done or something wrong happens,set the client as not available
+# After the session is done or something wrong happens,set the client as not available
 def close_client(value=0, config=None):
     if(config != None):
         # Agora ao colocar "NOT_AVAILABLE", o server vai saber que nao está disponivel
@@ -238,7 +238,6 @@ def decrypt_and_read_dotenv():
     config = dotenv_values(".env")
 
 
-    print('(KEY TO DECRYPT > ' + keyToDecrypt + ")")
     # delete newly created .env
     os.remove(".env")
     #print(config)
@@ -246,7 +245,6 @@ def decrypt_and_read_dotenv():
 
 def user_is_registred():
     # ver se .env.aes existe - se não existir é pq nao houve registo
-    # TODO: criar folders para cada cliente ou qq coisa, assim depois de 1 cliente estar registrado, o proximo vai dar true mesmo n estando
     return path.exists(".env.aes")
 
 def authentication():
@@ -283,8 +281,6 @@ print('> Proceeding with authentication.\n')
     #print("> Something went wrong.")
     #close_client(-1)
     
-#TODO Por dentro d euma função para desparguetar
-print('(2 KEY TO DECRYPT > ' + keyToDecrypt + ")")
 
 try:
     pyAesCrypt.decryptFile(".env.aes", ".env", keyToDecrypt)
@@ -314,8 +310,7 @@ listener_thread.start()
 atexit.register(close_client, (0,new_config))
 
 # Services
-print("> client session address: " + my_ip_port)
-# TODO: Como andar de um lado para o outro sem estar sempre a pedir password?
+#print("> client session address: " + my_ip_port)
 # agora está a dar o new_config que veio na autenticação e assim nao pede
 request_set_ip(new_config, my_ip_port)
 main_menu(my_ip_port, new_config)
