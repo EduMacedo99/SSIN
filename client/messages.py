@@ -84,6 +84,8 @@ def send_message(config):
             s.sendall(encrypted_message)
     except ConnectionRefusedError:
         print("> This client is not available at the moment, try again later\n")
+    except ExceptionUserNotAvailable:
+        print("> This client is not available at the moment, try again later\n")
     except ExceptionUserNotFound:
         print("> This username does not exist in the server database\n")
 
