@@ -179,12 +179,13 @@ app.get('/get_ip', function(req, res){
         res.status(501).json({"msg": "client is not available right now."})
       }
       else {
-        // Encrypt msg
+        // Encrypt msg an ip port
         const new_iv_server = symmetric.createNewIV(utils.SIZE)
         const enc_msg = symmetric.encrypt(dec_username_2 + " ip was sent.", new_iv_server, client.symmetric_key)
+        const enc_ip_addr = symmetric.encrypt(row.ip_address, new_iv_server, client.symmetric_key)
         
         console.log(dec_username_2 + " ip was sent.\n")
-        res.status(200).json({"msg": enc_msg, "ip_port": row.ip_address, "new_iv": new_iv_server})
+        res.status(200).json({"msg": enc_msg, "ip_port": enc_ip_addr, "new_iv": new_iv_server})
       }
     })
   })
