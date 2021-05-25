@@ -6,7 +6,6 @@ const TIMEOUT = 10000
 /**
 * Save token and symmetric key in DB
 *
-* TODO: Evitar SQL Injection
 */
 function saveClientRegistration (username, token, symmetric_key) {
   const sql = "UPDATE users SET token=?, symmetric_key=? WHERE username=?"
@@ -19,8 +18,6 @@ function saveClientRegistration (username, token, symmetric_key) {
 
 /**
 * Save challenge and their expire timeout on the DB
-*
-* TODO: Evitar SQL Injection
 */
 function saveChallenge (username, challenge, timeout) {
   const sql = "UPDATE users SET challenge=?, challenge_timeout=? WHERE username=?"
@@ -33,8 +30,6 @@ function saveChallenge (username, challenge, timeout) {
 
 /**
 * Save new token and ip_port of client session
-*
-* TODO: Evitar SQL Injection
 */
 function saveClientNewSession (username, token) {
     const sql = "UPDATE users SET token=? WHERE username=?"

@@ -18,7 +18,7 @@ def authentication_server(config, server_ip_url, size):
     s.bind((socket.gethostname(), 0))
     ip_port = s.getsockname()
     ip_port = str(ip_port[0]) + ":" + str(ip_port[1])
-    print("\n> Client address:", ip_port)
+    #print("\n> Client address:", ip_port)
         
     # Encrypt token
     symmetric_key_iv = symmetric_encryption.create_new_iv(size)

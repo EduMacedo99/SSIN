@@ -59,7 +59,6 @@ app.post('/get_token', function (req, res) {
     console.log("... checking if username and one time id macthes DB")
     
     const sql_confirm_ID = "SELECT one_time_id FROM users WHERE username=?"
-    // TODO:
     //var stmt = DB.db.prepare(sql_confirm_ID);
     //stmt.get([username], (err, row) => {
     DB.db.get(sql_confirm_ID, [username], (err, row) => {
@@ -95,7 +94,6 @@ app.post('/get_token', function (req, res) {
                 const token = Crypto.randomBytes(12).toString('base64').slice(0, 12);
                 //**************************************************************************** */
                 
-                //TODO: criar um novo iv e enviá-lo juntamente com o enc_token
                 const new_iv_server = symmetric.createNewIV(utils.SIZE)
                 const enc_token = symmetric.encrypt( token, new_iv_server, symmetric_key)
                  res.statusCode = 200;

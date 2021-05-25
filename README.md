@@ -42,7 +42,7 @@
 * encrypted (rsa): one_time_id, new_iv, symmetric_key, time
 
 ### Server Response:
-* not encrypted: **TODO:**new_iv
+* not encrypted: new_iv
 * encrypted(symmetric): token
 ---------------------------------------------
 
