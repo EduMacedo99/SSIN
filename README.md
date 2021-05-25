@@ -12,7 +12,14 @@
     $ cd server
     $ python create_table.py
 
-## Starrt Server & Pre-registration "face-to-face"
+## Create two clients
+
+    To send messages between two clients run them from different folders
+    Pre-registration needed on both
+
+    $ cp -r client ./client2
+
+## Pre-registration & Start Server "face-to-face"
 
     $ cd server
     $ python register_app.py
