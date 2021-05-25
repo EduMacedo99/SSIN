@@ -15,6 +15,7 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from threading import Thread
 from datetime import datetime
+import atexit
 
 from assymmetric_encryption import save_key_pair
 import symmetric_encryption
@@ -310,6 +311,7 @@ port = int(my_ip_port.split(":")[1])
 listener_thread = Thread(target=listen_socket, args=(new_config, port, keyToDecrypt))
 listener_thread.daemon = True
 listener_thread.start()
+atexit.register(close_client)
 
 # Services
 print("> client session address: " + my_ip_port)
