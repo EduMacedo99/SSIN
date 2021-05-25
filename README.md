@@ -59,7 +59,7 @@
 ---------------------------------------------
 ### Client Challenge Solved Request:
 * not encrypted: username, new_iv
-* encrypted(symmetric): "challenge", ip_port, time
+* encrypted(symmetric): "challenge", time
 
 ### Server Response:
 * not encrypted: new_iv

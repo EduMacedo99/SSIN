@@ -36,9 +36,9 @@ function saveChallenge (username, challenge, timeout) {
 *
 * TODO: Evitar SQL Injection
 */
-function saveClientNewSession (username, token, ip_port) {
-    const sql = "UPDATE users SET token=?, ip_address=? WHERE username=?"
-    DBconnect.run(sql, [token, ip_port, username], async function (err, row) {
+function saveClientNewSession (username, token) {
+    const sql = "UPDATE users SET token=? WHERE username=?"
+    DBconnect.run(sql, [token, username], async function (err, row) {
       if (err) {
         return console.error(err.message);
       }
@@ -84,7 +84,7 @@ function getOnlyClient(res, username, callback){
                 res.status(500).json({"msg":"Request lifetime expired."})
                 return
             }
-            console.log("(test) Request made", now - Date.parse(dec_time), "ms ago.")
+            //console.log("(test) Request made", now - Date.parse(dec_time), "ms ago.")
            
             // Ckeck token
             const token_decrypted = symmetric.decrypt(cl_token, new_iv, symmetric_key)

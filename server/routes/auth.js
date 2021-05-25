@@ -59,7 +59,7 @@ app.get("/challengeRefreshToken", function (req, res) {
       res.status(500).json({"msg":"Request lifetime expired."})
       return
     }
-    console.log("(test) Request made", now - Date.parse(timeout_res), "ms ago.")
+    //console.log("(test) Request made", now - Date.parse(timeout_res), "ms ago.")
 
     // Check challenge lifetime
     if(challenge_timeout < now){
@@ -67,7 +67,7 @@ app.get("/challengeRefreshToken", function (req, res) {
       res.status(500).json({"msg":"Challenge lifetime expired."})
       return
     }
-    console.log("(test) callhenge lifetime finishes in", challenge_timeout - now, "ms.")
+    //console.log("(test) callhenge lifetime finishes in", challenge_timeout - now, "ms.")
 
     // Decrypt challenge answer 
     const dec_challenge = symmetric.decrypt(enc_challenge, new_iv, symmetric_key)
@@ -77,15 +77,13 @@ app.get("/challengeRefreshToken", function (req, res) {
       res.status(500).json({"msg":"Answer do not macth."})
       return
     }
-    // Decrypt ip_port
-    const dec_ip_port = symmetric.decrypt(ip_port, new_iv, symmetric_key)
 
     // (slides) If so, distribute a short-term session key(new token) for being used between the two
     // Create new token
     const new_token = Crypto.randomBytes(12).toString("base64").slice(0, 12)
             
-    // Update DB with new token + ip_port of client session
-    utils.saveClientNewSession (username, new_token, dec_ip_port)
+    // Update DB with new token of client session
+    utils.saveClientNewSession (username, new_token)
 
     // Encrypt new token and msg
     const new_iv_server = symmetric.createNewIV(utils.SIZE)

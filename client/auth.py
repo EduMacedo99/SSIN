@@ -48,7 +48,6 @@ def authentication_server(config, server_ip_url, size):
         # Encrypt N, and send it back
         symmetric_key_iv = symmetric_encryption.create_new_iv(size)
         enc_challenge = symmetric_encryption.encrypt(res_content["challenge"], symmetric_key_iv.encode(), symmetric_key.encode())
-        enc_ip_port = symmetric_encryption.encrypt(ip_port, symmetric_key_iv.encode(), symmetric_key.encode())
         enc_time = symmetric_encryption.encrypt(str(datetime.now()), symmetric_key_iv.encode(), symmetric_key.encode())
         
         # Send answer
@@ -57,7 +56,6 @@ def authentication_server(config, server_ip_url, size):
                 "username": username,
                 "enc_challenge": enc_challenge,
                 "new_iv": symmetric_key_iv,
-                "ip_port": enc_ip_port,
                 "time": enc_time
             } 
         )

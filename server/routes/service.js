@@ -32,7 +32,7 @@ function checkSecurityLevel(now, req, res, callback) {
       res.status(500).json({"msg":"Request lifetime expired."})
       return
     }
-    console.log("(test) Request made", now - Date.parse(dec_time), "ms ago.")
+    //console.log("(test) Request made", now - Date.parse(dec_time), "ms ago.")
 
     // Decrypt  token
     const token_decrypted = symmetric.decrypt(cl_token, new_iv, symmetric_key)

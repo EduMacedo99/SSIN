@@ -38,7 +38,7 @@ app.post('/get_token', function (req, res) {
         res.status(500).json({"msg":"Request lifetime expired."})
         return
     }
-    console.log("(test) Request made", now - Date.parse(timeout), "ms ago.")
+    //console.log("(test) Request made", now - Date.parse(timeout), "ms ago.")
 
     const enc_ID = req.body.ID_encrypt;
     const enc_iv = req.body.encrypt_iv;

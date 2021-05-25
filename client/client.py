@@ -311,7 +311,7 @@ port = int(my_ip_port.split(":")[1])
 listener_thread = Thread(target=listen_socket, args=(new_config, port, keyToDecrypt))
 listener_thread.daemon = True
 listener_thread.start()
-atexit.register(close_client)
+atexit.register(close_client, (0,new_config))
 
 # Services
 print("> client session address: " + my_ip_port)
@@ -320,6 +320,6 @@ print("> client session address: " + my_ip_port)
 request_set_ip(new_config, my_ip_port)
 main_menu(my_ip_port, new_config)
 
-close_client()
+close_client(config=new_config)
 
     
