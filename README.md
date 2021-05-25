@@ -1,115 +1,160 @@
 # FEUP-SSIN
 
 ## Install
+
     $ npm install
 
 ## Create Database
+
     $ cd database
     $ cat create.sql | sqlite3 Database.db
     or (testing)
-    $ cd server 
+    $ cd server
     $ python create_table.py
 
 ## Starrt Server & Pre-registration "face-to-face"
-    $ cd server 
+
+    $ cd server
     $ python register_app.py
     $ node index
 
 ## First Registration &/or Authentication (New Session)
+
     $ cd client
     $ python client.py
 
-* Main Menu
-    1. Request service
-        1. Calculation of square root (security level: 1)
-        2. Calculation of cubic  root (security level: 2)
-        3. Paramaterized n-root (security level: 3)
-    2. Send message
-
+- Main Menu
+  1. Request service
+     1. Calculation of square root (security level: 1)
+     2. Calculation of cubic root (security level: 2)
+     3. Paramaterized n-root (security level: 3)
+  2. Send message
+  3. Access received messages
 
 # Encrypt Process
 
 ## Registration
----------------------------------------------
+
+---
+
 ### Client asks for server public key.
 
 ### Server Response:
-* not encrypted: public_key
----------------------------------------------
----------------------------------------------
+
+- not encrypted: public_key
+
+---
+
+---
+
 ### Client:
-* not encrypted: username
-* encrypted (rsa): one_time_id, new_iv, symmetric_key, time
+
+- not encrypted: username
+- encrypted (rsa): one_time_id, new_iv, symmetric_key, time
 
 ### Server Response:
-* not encrypted: **TODO:**new_iv
-* encrypted(symmetric): token
----------------------------------------------
 
+- not encrypted: **TODO:**new_iv
+- encrypted(symmetric): token
+
+---
 
 ## Authentication
----------------------------------------------
+
+---
+
 ### Client Challenge Request:
-* not encrypted: username, new_iv
-* encrypted(symmetric): token, msg, time
+
+- not encrypted: username, new_iv
+- encrypted(symmetric): token, msg, time
 
 ### Server Response:
-* not encrypted: challenge, new_iv
-* encrypted(symmetric): succ_msg
----------------------------------------------
+
+- not encrypted: challenge, new_iv
+- encrypted(symmetric): succ_msg
+
+---
+
 ### Client Challenge Solved Request:
-* not encrypted: username, new_iv
-* encrypted(symmetric): "challenge", time
+
+- not encrypted: username, new_iv
+- encrypted(symmetric): "challenge", time
 
 ### Server Response:
-* not encrypted: new_iv
-* encrypted(symmetric): new_token, succ_msg
----------------------------------------------
 
+- not encrypted: new_iv
+- encrypted(symmetric): new_token, succ_msg
+
+---
 
 ## Services
----------------------------------------------
+
+---
+
 ### Client set ip Request:
-* not encrypted: username, new_iv
-* encrypted(symmetric): token, ip_port, time
+
+- not encrypted: username, new_iv
+- encrypted(symmetric): token, ip_port, time
 
 ### Server Response:
-* not encrypted: new_iv
-* encrypted(symmetric): succ_msg
----------------------------------------------
----------------------------------------------
+
+- not encrypted: new_iv
+- encrypted(symmetric): succ_msg
+
+---
+
+---
+
 ### Client get ip Request:
-* not encrypted: username, new_iv
-* encrypted(symmetric): token, username_2, time
+
+- not encrypted: username, new_iv
+- encrypted(symmetric): token, username_2, time
 
 ### Server Response:
-* not encrypted: new_iv, ip_port
-* encrypted(symmetric): ip_port, succ_msg
----------------------------------------------
----------------------------------------------
+
+- not encrypted: new_iv, ip_port
+- encrypted(symmetric): ip_port, succ_msg
+
+---
+
+---
+
 ### Client service Request:
-* not encrypted: username, new_iv
-* encrypted(symmetric): token, service_data, time
+
+- not encrypted: username, new_iv
+- encrypted(symmetric): token, service_data, time
 
 ### Server Response:
-* not encrypted: new_iv
-* encrypted(symmetric): succ_msg with the value
----------------------------------------------
----------------------------------------------
+
+- not encrypted: new_iv
+- encrypted(symmetric): succ_msg with the value
+
+---
+
+---
+
 ### Client set public_key Request:
-* not encrypted: username, new_iv
-* encrypted(symmetric): token, public_key, time
+
+- not encrypted: username, new_iv
+- encrypted(symmetric): token, public_key, time
 
 ### Server Response:
-* not encrypted: new_iv
-* encrypted(symmetric): succ_msg
----------------------------------------------
----------------------------------------------
+
+- not encrypted: new_iv
+- encrypted(symmetric): succ_msg
+
+---
+
+---
+
 ### Client get public_key Request:
-* not encrypted: username, new_iv
-* encrypted(symmetric): token, username_2, time
+
+- not encrypted: username, new_iv
+- encrypted(symmetric): token, username_2, time
 
 ### Server Response:
-* not encrypted: new_iv, ip_port
-* encrypted(symmetric): public_key, succ_msg
----------------------------------------------
+
+- not encrypted: new_iv, ip_port
+- encrypted(symmetric): public_key, succ_msg
+
+---

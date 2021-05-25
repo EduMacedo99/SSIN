@@ -1,6 +1,6 @@
 
 import socket
-import os 
+import os
 import pyAesCrypt
 from os import path
 from datetime import datetime
@@ -23,14 +23,15 @@ def save_message(message, addr, key):
             os.remove('log.txt.aes')
         except ValueError:
             print('Was not able to decrypt the file')
-        
+
         f = open("log.txt", "a")
     else:
         f = open("log.txt", "w+")
 
     sender, message_text = [str(b) for b in message.split(b"\n")[0:2]]
-    f.write('Message received' + ' at ' + current_time + ' from ' + sender + '\n')
-    f.write('> ' + message_text)
+    f.write('Message received' + ' at ' +
+            current_time + ' from ' + sender[2:-1] + '\n')
+    f.write('> ' + message_text[2:-1])
     f.write('\n')
     f.write('-----------------------------------\n')
     f.close()
@@ -43,8 +44,6 @@ def save_message(message, addr, key):
     print("3 - Check received messages")
     print("4 - Exit")
     print("option:")
-
-
 
 
 def listen_socket(config, port, key):
@@ -74,10 +73,12 @@ def send_message(config):
         message = input("Write your message:\n")
         public_key = request_public_key(config, username_2)
         #print("public key")
-        #print(public_key)
-        complete_message_bytes = bytes(config["USERNAME"], "utf-8") + b"\n" + sign_message(bytes(message, "utf-8"))
-        encrypted_message = encrypt_long_message(complete_message_bytes, public_key)
-        #print("1")
+        # print(public_key)
+        complete_message_bytes = bytes(
+            config["USERNAME"], "utf-8") + b"\n" + sign_message(bytes(message, "utf-8"))
+        encrypted_message = encrypt_long_message(
+            complete_message_bytes, public_key)
+        # print("1")
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             #print("with socket")
             s.connect((LOCALHOST, port))
@@ -88,4 +89,3 @@ def send_message(config):
         print("> This client is not available at the moment, try again later\n")
     except ExceptionUserNotFound:
         print("> This username does not exist in the server database\n")
-
