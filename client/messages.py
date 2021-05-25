@@ -27,10 +27,10 @@ def save_message(message, addr, key):
         f = open("log.txt", "a")
     else:
         f = open("log.txt", "w+")
-
+    
     sender, message_text = [str(b) for b in message.split(b"\n")[0:2]]
-    f.write('Message received' + ' at ' + current_time + ' from ' + sender + '\n')
-    f.write('> ' + message_text)
+    f.write('Message received' + ' at ' + current_time + ' from ' + sender[2:-1] + '\n')
+    f.write('> ' + message_text[2:-1])
     f.write('\n')
     f.write('-----------------------------------\n')
     f.close()

@@ -25,7 +25,7 @@
         2. Calculation of cubic  root (security level: 2)
         3. Paramaterized n-root (security level: 3)
     2. Send message
-
+    3. Check received message
 
 # Encrypt Process
 
